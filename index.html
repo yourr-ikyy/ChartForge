@@ -1,0 +1,1198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="yourr-ikyy ChartForge — spreadsheet-like data editor and realtime chart visualization studio.">
+<meta name="theme-color" content="#08111f">
+<title>yourr-ikyy · ChartForge Bento</title>
+
+<!-- External libraries: SheetJS for XLSX/CSV, Apache ECharts for interactive SVG/canvas charts. -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+
+<style>
+:root{
+  --bg:#f3f7f3;
+  --bg2:#edf4ee;
+  --panel:#ffffff;
+  --panel-soft:#f7fbf7;
+  --line:#dce8df;
+  --line2:#e7efe9;
+  --text:#15231a;
+  --muted:#718178;
+  --green:#1d9b63;
+  --green2:#36b978;
+  --mint:#dff5e8;
+  --lime:#b9e97d;
+  --dark:#13241b;
+  --danger:#de586a;
+  --warning:#b77a16;
+  --shadow:0 20px 50px rgba(44,74,55,.09);
+  --shadow-sm:0 8px 24px rgba(44,74,55,.07);
+  --radius:24px;
+  --radius-sm:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 7% 0%,rgba(84,196,125,.14),transparent 28rem),
+    radial-gradient(circle at 93% 6%,rgba(185,233,125,.13),transparent 25rem),
+    linear-gradient(180deg,#f7fbf7 0%,#f1f6f2 60%,#edf3ee 100%);
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.shell{width:min(1480px,calc(100% - 28px));margin:auto}
+
+.topbar{
+  height:78px;display:flex;align-items:center;justify-content:space-between;gap:18px;
+}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brandmark{
+  width:42px;height:42px;display:grid;place-items:center;border-radius:14px;
+  background:linear-gradient(145deg,#163d2b,#1ea064);
+  border:1px solid rgba(22,61,43,.1);
+  box-shadow:0 10px 26px rgba(30,160,100,.18)
+}
+.brandmark svg{width:24px;color:#fff}
+.brandtext{font-size:15px;font-weight:950;letter-spacing:-.01em}
+.brandtext em{font-style:italic}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nav a,.nav button{
+  border:1px solid transparent;background:transparent;text-decoration:none;
+  color:#708177;padding:9px 10px;border-radius:10px;font-size:12px;font-weight:800
+}
+.nav a:hover,.nav button:hover{
+  color:var(--text);background:#fff;border-color:var(--line);box-shadow:var(--shadow-sm)
+}
+
+.hero{
+  display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,.8fr);
+  gap:16px;margin:6px 0 16px
+}
+.hero-main,.hero-side{
+  border:1px solid var(--line);background:rgba(255,255,255,.88);
+  border-radius:var(--radius);box-shadow:var(--shadow)
+}
+.hero-main{padding:30px}
+.hero-side{
+  padding:22px;display:flex;flex-direction:column;justify-content:space-between;
+  background:
+    radial-gradient(circle at 90% 0%,rgba(185,233,125,.55),transparent 11rem),
+    linear-gradient(145deg,#f6fff8,#eef9f1)
+}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 10px;border-radius:999px;background:#e7f8ed;color:#188050;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:950
+}
+.kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:#2bb56e}
+h1{
+  margin:12px 0 0;font-size:clamp(34px,4.8vw,58px);line-height:.96;
+  letter-spacing:-.065em
+}
+.hero-main p{
+  max-width:820px;color:var(--muted);line-height:1.7;margin:13px 0 0;font-size:14px
+}
+.hero-pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+.chip{
+  border:1px solid var(--line);background:#fff;color:#617067;border-radius:999px;
+  padding:7px 10px;font-size:10px;font-weight:850
+}
+.side-label{font-size:10px;color:#67816f;font-weight:900;text-transform:uppercase;letter-spacing:.12em}
+.side-title{font-size:23px;line-height:1.05;font-weight:950;margin:8px 0}
+.side-copy{font-size:11px;color:#6f8176;line-height:1.55}
+.signal{
+  display:grid;grid-template-columns:repeat(14,1fr);gap:4px;align-items:end;height:58px;margin-top:16px
+}
+.signal span{
+  border-radius:6px;background:#63c68d;min-height:8px;opacity:.9
+}
+.signal span:nth-child(2n){background:#9fda71}.signal span:nth-child(3n){background:#2ea866}
+.signal span:nth-child(4n){height:58px}.signal span:nth-child(5n){height:34px}.signal span:nth-child(6n){height:44px}
+
+.toolbar{
+  padding:10px;border:1px solid var(--line);background:#fff;border-radius:18px;
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;box-shadow:var(--shadow-sm)
+}
+.tool{
+  border:1px solid var(--line);background:#f9fcfa;color:#587064;border-radius:11px;
+  padding:9px 11px;font-size:11px;font-weight:900;transition:.16s
+}
+.tool:hover{transform:translateY(-1px);border-color:#a7c8b3;background:#fff;color:var(--text)}
+.tool.primary{background:linear-gradient(135deg,#17975d,#31b775);border-color:transparent;color:#fff;box-shadow:0 10px 24px rgba(30,160,100,.17)}
+.tool.good{color:#188050;background:#eefaf3}
+.tool.danger{color:#c64f62;background:#fff6f7}
+.spacer{flex:1}
+
+.bento-grid{
+  display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:16px
+}
+.panel{
+  background:rgba(255,255,255,.94);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow)
+}
+.data-bento{grid-column:span 7;overflow:hidden}
+.chart-bento{grid-column:span 5;overflow:hidden}
+.metrics-bento{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:10px}
+.features-bento{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+.panel-head{
+  padding:16px 18px;border-bottom:1px solid var(--line2);
+  display:flex;justify-content:space-between;gap:10px;align-items:center
+}
+.panel-title{font-size:11px;font-weight:950;letter-spacing:.08em;text-transform:uppercase}
+.panel-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.head-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.mini{
+  border:1px solid var(--line);background:#f7fbf8;color:#64756c;border-radius:9px;
+  padding:7px 9px;font-size:10px;font-weight:900
+}
+.mini:hover{color:var(--text);border-color:#afd0b9;background:#fff}
+.formulabar{
+  padding:9px;border-bottom:1px solid var(--line2);
+  display:grid;grid-template-columns:68px 1fr;gap:7px;background:#fbfefc
+}
+.namebox,.formula{
+  background:#fff;border:1px solid var(--line);color:#2e4738;border-radius:9px;
+  padding:8px 10px;font-size:11px;outline:none
+}
+.formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+.namebox{text-align:center;font-weight:900;color:#4e7f65}
+.namebox:focus,.formula:focus{border-color:#55b982;box-shadow:0 0 0 3px rgba(72,184,126,.1)}
+
+.sheet-wrap{overflow:auto;max-height:640px}
+.grid{
+  display:grid;grid-auto-rows:32px;min-width:max-content;
+  grid-template-columns:42px repeat(12,minmax(105px,1fr))
+}
+.gcell{border-right:1px solid #e8efea;border-bottom:1px solid #e8efea;background:#fff;min-width:0}
+.colhead,.rowhead{
+  display:grid;place-items:center;background:#f5faf6;color:#718179;font-size:10px;font-weight:950;
+  user-select:none;position:sticky;z-index:3
+}
+.colhead{top:0}.rowhead{left:0}.corner{position:sticky;left:0;top:0;z-index:5;background:#f2f8f3}
+.cell{
+  width:100%;height:100%;border:0;background:transparent;color:#304739;padding:0 9px;
+  outline:none;font-size:11px
+}
+.cell:focus{background:#f5fcf8;box-shadow:inset 0 0 0 1px #5db88b}
+.cell.formula-cell{color:#1d8e5c}
+.cell.error-cell{color:var(--danger)}
+.cell.number-cell{text-align:right}
+.cell:disabled{background:#f3f7f4;color:#9eaaa3}
+.row-actions{
+  padding:10px;border-top:1px solid var(--line2);display:flex;gap:6px;flex-wrap:wrap;background:#fbfefc
+}
+.row-actions input.mini{background:#fff;outline:none}
+
+.chart-controls{
+  padding:14px;border-bottom:1px solid var(--line2);display:grid;gap:10px;background:#fcfefc
+}
+.control-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.control label{
+  display:block;color:#718279;font-size:9px;text-transform:uppercase;letter-spacing:.1em;
+  font-weight:950;margin:0 0 5px
+}
+.control input,.control select{
+  width:100%;background:#fff;border:1px solid var(--line);color:#304739;border-radius:9px;
+  padding:8px 9px;outline:none;font-size:11px
+}
+.control input:focus,.control select:focus{border-color:#55b982;box-shadow:0 0 0 3px rgba(72,184,126,.08)}
+.checks{display:flex;gap:6px;flex-wrap:wrap}
+.check{
+  display:flex;align-items:center;gap:5px;padding:6px 8px;border:1px solid var(--line);
+  background:#f8fcf9;border-radius:8px;font-size:10px;color:#687b71
+}
+.check input{accent-color:#239e68}
+
+.palette{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.swatch{height:21px;border-radius:6px;border:2px solid transparent;padding:0}
+.swatch.active{border-color:#1c3728;box-shadow:0 0 0 1px #fff inset}
+
+.chart-stage{padding:12px}
+.chart{
+  width:100%;height:425px;border:1px solid #e3ece5;border-radius:14px;
+  background:#f7fbf8;overflow:hidden
+}
+.chart-status{padding:0 13px 13px;color:#7a8b82;font-size:10px}
+
+.metric{
+  padding:14px;border:1px solid var(--line);border-radius:17px;
+  background:linear-gradient(145deg,#fbfefc,#f4faf5)
+}
+.metric b{display:block;font-size:20px;font-weight:950;letter-spacing:-.04em}
+.metric span{display:block;color:#7b8c83;font-size:9px;margin-top:4px;text-transform:uppercase;letter-spacing:.12em;font-weight:900}
+.metric:nth-child(2){background:linear-gradient(145deg,#effaf3,#e6f7ec)}
+.metric:nth-child(3){background:linear-gradient(145deg,#f2faec,#e9f5df)}
+.metric:nth-child(4){background:linear-gradient(145deg,#f5f1ff,#ece6ff)}
+
+.feature-card{padding:17px;border-radius:17px;border:1px solid var(--line);background:#fff}
+.feature-label{font-size:9px;text-transform:uppercase;letter-spacing:.13em;color:#278c60;font-weight:950}
+.feature-card h3{margin:6px 0 7px;font-size:13px;letter-spacing:-.02em}
+.feature-card p{margin:0;color:#76857d;font-size:10px;line-height:1.55}
+
+.formula-strip{
+  padding:10px 13px;border-bottom:1px solid var(--line2);background:#f5faf6;
+  display:flex;gap:6px;flex-wrap:wrap;align-items:center
+}
+.formula-chip{
+  border:1px solid #d4e7da;background:#fff;color:#4f7662;border-radius:999px;
+  padding:6px 8px;font:10px "SFMono-Regular",Consolas,monospace
+}
+.formula-chip:hover{border-color:#8fc4a1;color:#1e7f55}
+
+.status-line{
+  display:flex;align-items:center;gap:7px;font-size:10px;color:#72837a
+}
+.dot{width:7px;height:7px;border-radius:50%;background:#2cb673}
+.dot.warn{background:#e3a432}.dot.bad{background:#dc6170}
+
+footer{
+  padding:28px 0 46px;color:#78887f;font-size:10px;
+  display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap
+}
+.footer-links{display:flex;gap:10px;flex-wrap:wrap}
+.footer-links a{text-decoration:none;color:#60756a}
+.footer-links a:hover{color:#188050}
+
+.hidden{display:none!important}
+.toast{
+  position:fixed;right:16px;bottom:16px;z-index:50;max-width:330px;padding:11px 13px;border-radius:11px;
+  border:1px solid #c9e0d1;background:#fff;box-shadow:var(--shadow);font-size:11px;color:#284032;
+  transform:translateY(15px);opacity:0;pointer-events:none;transition:.2s
+}
+.toast.show{transform:none;opacity:1}
+.modal{
+  position:fixed;inset:0;z-index:40;background:rgba(31,47,38,.26);backdrop-filter:blur(8px);
+  display:grid;place-items:center;padding:20px
+}
+.modal-card{
+  width:min(740px,100%);max-height:80vh;overflow:auto;padding:20px;
+  background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)
+}
+.modal-card h2{margin:0 0 8px;font-size:21px}
+.modal-card p,.modal-card li{font-size:11px;line-height:1.7;color:#728078}
+.modal-card code{color:#177d50;background:#f0f8f3;padding:1px 4px;border-radius:5px}
+.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.kbd{border:1px solid var(--line);background:#f5f9f6;border-radius:6px;padding:2px 6px;font-family:monospace;color:#496258}
+
+@media(max-width:1180px){
+  .data-bento{grid-column:1/-1}.chart-bento{grid-column:1/-1}
+  .chart{height:430px}.features-bento{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:820px){
+  .hero{grid-template-columns:1fr}.hero-side{min-height:180px}
+  .metrics-bento{grid-template-columns:repeat(2,1fr)}
+  .control-grid{grid-template-columns:1fr}
+  .features-bento{grid-template-columns:1fr 1fr}
+}
+@media(max-width:620px){
+  .shell{width:min(100% - 18px,1480px)}
+  .topbar{height:auto;padding:12px 0}.nav{display:none}
+  .hero-main{padding:22px}.hero-side{padding:18px}
+  h1{font-size:37px}
+  .toolbar .tool{flex:1 1 auto}
+  .spacer{display:none}
+  .metrics-bento,.features-bento{grid-template-columns:1fr}
+  .chart{height:340px}
+  .grid{grid-template-columns:42px repeat(12,105px)}
+}
+
+/* =========================
+   ChartForge V3 · Bento layer
+   ========================= */
+.v3-bento{
+  display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:14px;
+  margin-top:16px;
+}
+.v3-card{
+  min-width:0;
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:rgba(255,255,255,.94);
+  box-shadow:var(--shadow-sm);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease;
+}
+.v3-card:hover{transform:translateY(-1px);box-shadow:0 16px 38px rgba(44,74,55,.09)}
+.v3-wide{grid-column:span 7}
+.v3-mid{grid-column:span 5}
+.v3-3col{grid-column:span 4}
+.v3-full{grid-column:1/-1}
+.v3-head{
+  min-height:62px;
+  padding:15px 17px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  border-bottom:1px solid var(--line2);
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(249,253,250,.96));
+}
+.v3-title{
+  font-size:14px;
+  font-weight:950;
+  letter-spacing:-.025em;
+  color:var(--text);
+}
+.v3-sub{
+  margin-top:3px;
+  font-size:10px;
+  line-height:1.45;
+  color:var(--muted);
+}
+.v3-body{padding:15px 17px}
+.v3-list{display:grid;gap:8px}
+.v3-item{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  padding:10px 11px;
+  border:1px solid var(--line2);
+  border-radius:13px;
+  background:linear-gradient(145deg,#fbfefc,#f6faf7);
+}
+.v3-item::before{
+  content:"";
+  width:7px;
+  height:7px;
+  flex:0 0 7px;
+  margin-top:4px;
+  border-radius:50%;
+  background:#49b97d;
+  box-shadow:0 0 0 4px rgba(73,185,125,.10);
+}
+.v3-item strong{display:block;font-size:11px;line-height:1.35;color:#23382b}
+.v3-item span{display:block;margin-top:2px;font-size:9px;line-height:1.45;color:#789086}
+.v3-item.insight-warn::before{background:#d59c3c;box-shadow:0 0 0 4px rgba(213,156,60,.11)}
+.v3-item.insight-bad::before{background:#d85c6f;box-shadow:0 0 0 4px rgba(216,92,111,.11)}
+.v3-item.insight-good::before{background:#2eaa6c}
+.v3-stack{display:grid;gap:10px}
+.v3-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.v3-actions > *{min-width:0}
+.v3-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.v3-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.v3-label{
+  display:block;
+  margin:0 0 5px;
+  color:#708179;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.11em;
+  font-weight:950;
+}
+.v3-input,.v3-select,.v3-textarea{
+  width:100%;
+  min-width:0;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:#304739;
+  outline:none;
+  font-size:10px;
+  transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.v3-input,.v3-select{height:35px;padding:7px 9px}
+.v3-textarea{min-height:74px;padding:9px;resize:vertical;line-height:1.45}
+.v3-input:focus,.v3-select:focus,.v3-textarea:focus{
+  border-color:#55b982;
+  box-shadow:0 0 0 3px rgba(72,184,126,.10);
+}
+.v3-input[type=color]{padding:3px;height:35px;cursor:pointer}
+.v3-input::placeholder,.v3-textarea::placeholder{color:#a3b0a9}
+.clean-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.clean-grid .mini{width:100%;min-height:31px}
+.detected-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.detected{
+  padding:9px 10px;
+  border-radius:12px;
+  border:1px solid var(--line2);
+  background:#f9fcfa;
+}
+.detected strong{display:block;font-size:9px;color:#395345;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.detected span{display:block;margin-top:2px;font-size:8px;color:#7d8f85;text-transform:uppercase;letter-spacing:.08em;font-weight:900}
+.calc-preview{
+  min-height:36px;
+  padding:9px 10px;
+  border:1px dashed #cfe1d4;
+  border-radius:11px;
+  background:#f8fcf9;
+  color:#65786e;
+  font-size:9px;
+  line-height:1.5;
+}
+.filter-row{
+  display:grid;
+  grid-template-columns:minmax(130px,1.15fr) minmax(95px,.8fr) minmax(120px,1fr) 34px;
+  gap:7px;
+  margin-bottom:7px;
+  align-items:center;
+}
+.filter-row .mini{height:35px;padding:0;font-size:14px;line-height:1}
+.inspector-tree{
+  display:grid;
+  gap:7px;
+  max-height:190px;
+  overflow:auto;
+}
+.inspector-node{
+  padding:8px 10px;
+  border-left:3px solid #52b980;
+  border-radius:8px;
+  background:#f6fbf7;
+  font:9px/1.5 "SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  color:#51685b;
+}
+.inspector-node .big{display:block;color:#204833;font-size:10px;font-weight:900}
+.inspector-node .small{display:block;color:#819289;font-size:8px}
+.api-status{margin-top:5px;color:#82928a;font-size:8px;line-height:1.45}
+.sheet-tabs{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  overflow:auto;
+  padding:9px;
+  margin-top:12px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.9);
+  box-shadow:var(--shadow-sm);
+}
+.sheet-tabs > *{flex:0 0 auto}
+.sheet-tab{
+  border:1px solid transparent;
+  background:#f4faf6;
+  color:#6f8177;
+  border-radius:10px;
+  padding:7px 10px;
+  font-size:10px;
+  font-weight:900;
+}
+.sheet-tab:hover{border-color:#b8d8c2;background:#fff;color:var(--text)}
+.sheet-tab.active{background:#e4f7eb;border-color:#b9dec5;color:#1f8155;box-shadow:inset 0 0 0 1px rgba(31,129,85,.05)}
+.sheet-tab-plus{padding:7px 11px}
+.dashboard-grid{
+  display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:10px;
+  padding:15px 17px 17px;
+}
+.dash-widget{
+  min-width:0;
+  position:relative;
+  grid-column:span 4;
+  border:1px solid var(--line);
+  border-radius:17px;
+  background:linear-gradient(145deg,#fbfefc,#f5faf6);
+  box-shadow:0 9px 24px rgba(44,74,55,.06);
+  overflow:hidden;
+}
+.dash-widget[data-size="wide"]{grid-column:span 8}
+.dash-widget[data-size="full"]{grid-column:1/-1}
+.dw-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 11px;border-bottom:1px solid var(--line2);cursor:grab}
+.dw-head:active{cursor:grabbing}
+.dw-body{padding:11px}
+.dw-chart{height:240px;width:100%}
+.dw-handle{display:flex;gap:4px;align-items:center}
+.dw-handle button{border:0;background:transparent;color:#829189;padding:3px 5px;border-radius:7px;font-size:11px}
+.dw-handle button:hover{background:#edf6f0;color:#305341}
+.dash-kpi{display:grid;gap:4px}
+.dash-kpi .big{font-size:28px;line-height:1;font-weight:950;letter-spacing:-.05em;color:#183a28}
+.dash-kpi .small{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:#7f9187;font-weight:900}
+.command-palette,.egg{
+  position:fixed;
+  inset:0;
+  z-index:70;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(14,27,20,.34);
+  backdrop-filter:blur(10px);
+}
+.command-card{
+  width:min(600px,100%);
+  max-height:75vh;
+  overflow:auto;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:20px;
+  background:rgba(249,253,250,.97);
+  box-shadow:0 30px 80px rgba(0,0,0,.20);
+}
+.command-input{
+  width:100%;
+  height:44px;
+  padding:0 13px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  outline:none;
+  background:#fff;
+  color:var(--text);
+  font-size:12px;
+  box-shadow:0 3px 12px rgba(44,74,55,.04);
+}
+.command-input:focus{border-color:#57b984;box-shadow:0 0 0 3px rgba(72,184,126,.10)}
+.command-item{
+  margin-top:7px;
+  padding:10px 11px;
+  border:1px solid transparent;
+  border-radius:11px;
+  cursor:pointer;
+  background:#f8fcf9;
+}
+.command-item:hover{border-color:#cae1d1;background:#fff;transform:translateX(1px)}
+.command-item strong{display:block;font-size:10px;color:#284535}
+.command-item small{display:block;margin-top:2px;color:#819188;font-size:8px}
+.egg-card{
+  width:min(460px,100%);
+  padding:28px;
+  text-align:center;
+  border:1px solid rgba(140,220,174,.35);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(91,201,136,.18),transparent 45%),
+    #10231a;
+  color:#effff4;
+  box-shadow:0 30px 90px rgba(0,0,0,.34);
+}
+.egg-card .code{font:9px/1.4 "SFMono-Regular",Consolas,monospace;letter-spacing:.2em;color:#76d7a0}
+.egg-card h2{margin:9px 0 7px;font-size:40px;letter-spacing:-.06em}
+.egg-card p{margin:0 auto 17px;max-width:34ch;color:#9db9a8;font-size:10px;line-height:1.65}
+.modal-wide{width:min(820px,100%)}
+
+/* V3 dark appearance */
+body.dark{
+  --line:#25392d;
+  --line2:#1d3025;
+  --panel:#101a15;
+  --panel-soft:#132019;
+  --text:#e9f5ed;
+  --muted:#92a89a;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 7% 0%,rgba(73,185,125,.15),transparent 28rem),
+    radial-gradient(circle at 93% 6%,rgba(185,233,125,.10),transparent 25rem),
+    linear-gradient(180deg,#0c1510 0%,#0b130f 60%,#09110d 100%);
+}
+body.dark .hero-main,body.dark .hero-side,body.dark .toolbar,body.dark .panel,body.dark .v3-card,body.dark .sheet-tabs,body.dark .command-card,body.dark .feature-card,body.dark .metric{
+  background:rgba(15,25,20,.94);
+  border-color:#24392c;
+}
+body.dark .hero-main p,body.dark .side-copy,body.dark .panel-sub,body.dark .v3-sub,body.dark .feature-card p,body.dark .metric span,body.dark footer,body.dark .api-status{color:#8ca394}
+body.dark .chip,body.dark .tool,body.dark .mini,body.dark .namebox,body.dark .formula,body.dark .v3-input,body.dark .v3-select,body.dark .v3-textarea,body.dark .command-input{background:#111c16;color:#dcebe1;border-color:#294132}
+body.dark .formula-strip,body.dark .chart-controls,body.dark .formulabar,body.dark .row-actions{background:#101a15;border-color:#24392c}
+body.dark .gcell{background:#101913;border-color:#203128}
+body.dark .colhead,body.dark .rowhead{background:#16241b;color:#8fa398}
+body.dark .cell{color:#d9e9df}
+body.dark .cell:disabled{background:#142019;color:#61746a}
+body.dark .v3-head{background:linear-gradient(180deg,#14221a,#101a15);border-color:#24392c}
+body.dark .v3-item,body.dark .detected,body.dark .calc-preview,body.dark .check,body.dark .feature-card{background:#111c16;border-color:#253a2d}
+body.dark .v3-item strong,body.dark .detected strong,body.dark .dash-kpi .big,body.dark .inspector-node .big{color:#ddede4}
+body.dark .v3-item span,body.dark .detected span,body.dark .inspector-node .small{color:#82978a}
+body.dark .inspector-node{background:#132119;border-color:#294334;color:#91a69a}
+body.dark .sheet-tab{background:#132119;color:#91a498}
+body.dark .sheet-tab.active{background:#193526;color:#77d39d;border-color:#2d6146}
+body.dark .dash-widget{background:#111c16;border-color:#294032}
+body.dark .dw-head{border-color:#24392c}
+body.dark .command-item{background:#142119}
+body.dark .command-item:hover{background:#182a20;border-color:#31513c}
+body.dark .footer-links a{color:#90a69a}
+
+@media(max-width:1180px){
+  .v3-wide,.v3-mid{grid-column:span 6}
+  .v3-3col{grid-column:span 6}
+}
+@media(max-width:820px){
+  .v3-wide,.v3-mid,.v3-3col,.v3-full{grid-column:1/-1}
+  .v3-grid-3{grid-template-columns:1fr}
+  .clean-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .detected-grid{grid-template-columns:1fr 1fr}
+  .dash-widget,.dash-widget[data-size="wide"]{grid-column:span 6}
+}
+@media(max-width:620px){
+  .v3-bento{gap:10px;margin-top:12px}
+  .v3-head{padding:13px 14px}
+  .v3-body{padding:13px 14px}
+  .v3-title{font-size:13px}
+  .v3-grid-2,.filter-row{grid-template-columns:1fr}
+  .filter-row .mini{width:100%}
+  .clean-grid{grid-template-columns:1fr 1fr}
+  .dash-widget,.dash-widget[data-size="wide"],.dash-widget[data-size="full"]{grid-column:1/-1}
+  .dashboard-grid{grid-template-columns:1fr;padding:12px}
+}
+
+</style>
+</head>
+
+<body>
+<div class="shell">
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="yourr-ikyy home">
+      <span class="brandmark">
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.7">
+          <rect x="3.5" y="3.5" width="21" height="21" rx="6"/>
+          <path d="M7.5 18.5 11 14l3.1 2.4L20.5 9.5"/>
+          <path d="M18.2 9.5h2.3v2.3"/>
+        </svg>
+      </span>
+      <span class="brandtext"><em>yourr-ikyy?</em> / ChartForge</span>
+    </a>
+    <nav class="nav">
+      <a href="https://github.com/yourr-ikyy" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://www.instagram.com/your_ikyz/" target="_blank" rel="noreferrer">Instagram</a>
+      <a href="https://codepen.io/eL-Fikyzz" target="_blank" rel="noreferrer">CodePen</a>
+      <a href="https://dev.to/yourrikyy" target="_blank" rel="noreferrer">dev.to</a>
+      <a href="https://steamcommunity.com/id/skibadifikyz" target="_blank" rel="noreferrer">Steam</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-main">
+      <div class="kicker">DATA → FORMULA → VISUALIZATION</div>
+      <h1>ChartForge</h1>
+      <p>
+        A compact browser data studio with spreadsheet-style editing, Excel-like formulas,
+        live charting, and portable exports. Bring a workbook, paste a table, or start from scratch.
+      </p>
+      <div class="hero-pills">
+        <span class="chip">Bento workspace</span>
+        <span class="chip">XLSX / CSV import</span>
+        <span class="chip">SVG / PNG export</span>
+        <span class="chip">Local autosave</span>
+        <span class="chip">Realtime controls</span>
+      </div>
+    </div>
+    <div class="hero-side">
+      <div>
+        <div class="side-label">Live workspace</div>
+        <div class="side-title">Turn rows into stories.</div>
+        <div class="side-copy">Your data stays in the browser while formulas and visualizations update around it.</div>
+      </div>
+      <div class="signal" aria-hidden="true">
+        <span style="height:18px"></span><span style="height:34px"></span><span style="height:26px"></span><span style="height:48px"></span>
+        <span style="height:22px"></span><span style="height:42px"></span><span style="height:54px"></span><span style="height:31px"></span>
+        <span style="height:46px"></span><span style="height:25px"></span><span style="height:58px"></span><span style="height:36px"></span>
+        <span style="height:49px"></span><span style="height:29px"></span>
+      </div>
+    </div>
+  </section>
+  <section class="toolbar" aria-label="Main toolbar">
+    <button class="tool primary" id="newBtn">New</button>
+    <button class="tool" id="sampleBtn">Sample data</button>
+    <button class="tool" id="importBtn">Import XLSX / CSV</button>
+    <input id="fileInput" type="file" accept=".xlsx,.xls,.csv,.ods" class="hidden">
+    <span class="spacer"></span>
+    <button class="tool" id="undoBtn">Undo</button>
+    <button class="tool" id="redoBtn">Redo</button>
+    <button class="tool good" id="saveBtn">Save</button>
+    <button class="tool" id="helpBtn">Formula help</button>
+    <span class="spacer"></span>
+    <button class="tool" id="exportCsvBtn">CSV</button>
+    <button class="tool" id="exportXlsxBtn">XLSX</button>
+    <button class="tool" id="exportSvgBtn">SVG</button>
+    <button class="tool" id="exportPngBtn">PNG</button>
+  </section>
+
+  <section class="bento-grid">
+    <div class="panel data-bento panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Data Grid</div>
+          <div class="panel-sub">Edit cells · formulas · paste from Excel · keyboard friendly</div>
+        </div>
+        <div class="head-actions">
+          <button class="mini" id="addColBtn">+ Column</button>
+          <button class="mini" id="addRowBtn">+ Row</button>
+        </div>
+      </div>
+
+      <div class="formulabar">
+        <input class="namebox" id="nameBox" value="A1" aria-label="Selected cell">
+        <input class="formula" id="formulaBar" value="" placeholder="Type a value or formula, e.g. =SUM(B2:B6)" aria-label="Formula bar">
+      </div>
+      <div class="formula-strip" id="formulaStrip">
+        <button class="formula-chip" data-formula="=SUM(B2:B8)">SUM()</button>
+        <button class="formula-chip" data-formula="=AVERAGE(B2:B8)">AVERAGE()</button>
+        <button class="formula-chip" data-formula="=MAX(B2:B8)">MAX()</button>
+        <button class="formula-chip" data-formula="=MIN(B2:B8)">MIN()</button>
+        <button class="formula-chip" data-formula="=COUNT(B2:B8)">COUNT()</button>
+        <button class="formula-chip" data-formula="=ROUND(B2,2)">ROUND()</button>
+        <button class="formula-chip" data-formula="=IF(B2&gt;10,B2,0)">IF()</button>
+      </div>
+
+      <div class="sheet-wrap" id="sheetWrap">
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <div class="row-actions">
+        <button class="mini" id="deleteRowBtn">Delete selected row</button>
+        <button class="mini" id="deleteColBtn">Delete selected column</button>
+        <button class="mini" id="duplicateBtn">Duplicate data</button>
+        <button class="mini" id="clearBtn">Clear data</button>
+        <button class="mini" id="sortAscBtn">Sort A→Z / 0→9</button>
+        <button class="mini" id="sortDescBtn">Sort Z→A / 9→0</button>
+        <button class="mini" id="fillDownBtn">Fill down</button>
+        <input id="searchInput" class="mini" style="margin-left:auto;min-width:180px" placeholder="Find in data…">
+      </div>
+    </div>
+
+    <aside class="panel chart-bento">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Chart Visualization</div>
+          <div class="panel-sub">Changes are rendered immediately</div>
+        </div>
+        <div class="head-actions">
+          <button class="mini" id="resetViewBtn">Reset view</button>
+        </div>
+      </div>
+
+      <div class="chart-controls">
+        <div class="control-grid">
+          <div class="control">
+            <label for="chartType">Chart type</label>
+            <select id="chartType">
+              <option value="bar">Bar</option>
+              <option value="line">Line</option>
+              <option value="area">Area</option>
+              <option value="scatter">Scatter</option>
+              <option value="pie">Pie</option>
+              <option value="doughnut">Doughnut</option>
+              <option value="radar">Radar</option>
+              <option value="funnel">Funnel</option>
+              <option value="gauge">Gauge</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="xAxis">Category / X axis</label>
+            <select id="xAxis"></select>
+          </div>
+        </div>
+
+        <div class="control">
+          <label>Data series</label>
+          <div class="checks" id="seriesChecks"></div>
+        </div>
+
+        <div class="control-grid">
+          <div class="control">
+            <label for="titleInput">Chart title</label>
+            <input id="titleInput" value="Your Data Visualization">
+          </div>
+          <div class="control">
+            <label for="subtitleInput">Subtitle</label>
+            <input id="subtitleInput" value="">
+          </div>
+        </div>
+
+        <div class="control-grid">
+          <div class="control">
+            <label for="legendPos">Legend</label>
+            <select id="legendPos">
+              <option value="bottom">Bottom</option>
+              <option value="top">Top</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+              <option value="none">Hidden</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="fontSize">Base text size</label>
+            <input id="fontSize" type="number" min="9" max="22" value="12">
+          </div>
+        </div>
+
+        <div class="control-grid">
+          <div class="control">
+            <label>Options</label>
+            <div class="checks">
+              <label class="check"><input id="smoothChk" type="checkbox"> Smooth</label>
+              <label class="check"><input id="stackChk" type="checkbox"> Stacked</label>
+              <label class="check"><input id="gridChk" type="checkbox" checked> Grid</label>
+              <label class="check"><input id="labelChk" type="checkbox"> Data labels</label>
+              <label class="check"><input id="zoomChk" type="checkbox"> Zoom</label>
+            </div>
+          </div>
+          <div class="control">
+            <label for="bgInput">Chart background</label>
+            <input id="bgInput" type="text" value="#f7fbf8">
+          </div>
+        </div>
+        <div class="control-grid">
+          <div class="control">
+            <label for="axisNameInput">Y-axis label</label>
+            <input id="axisNameInput" placeholder="e.g. Revenue (IDR)">
+          </div>
+          <div class="control">
+            <label for="xAxisNameInput">X-axis label</label>
+            <input id="xAxisNameInput" placeholder="e.g. Month">
+          </div>
+        </div>
+        <div class="control-grid">
+          <div class="control">
+            <label>Advanced style</label>
+            <div class="control-grid"><input id="lineWidth" class="v3-input" type="number" min="1" max="12" value="2" title="Line width"><input id="pointSize" class="v3-input" type="number" min="2" max="30" value="8" title="Point size"></div>
+          </div>
+          <div class="control">
+            <label>Axis behavior</label>
+            <div class="control-grid"><select id="yScale" class="v3-select"><option value="value">Linear</option><option value="log">Logarithmic</option></select><input id="xRotate" class="v3-input" type="number" min="-90" max="90" value="0" title="X label rotation"></div>
+          </div>
+        </div>
+        <div class="control-grid">
+          <div class="control"><label>Y limits</label><div class="control-grid"><input id="yMin" class="v3-input" type="number" placeholder="Auto min"><input id="yMax" class="v3-input" type="number" placeholder="Auto max"></div></div>
+          <div class="control"><label>Opacity + export</label><div class="control-grid"><input id="opacity" class="v3-input" type="number" min="0.1" max="1" step="0.05" value="1"><label class="check"><input id="transparentBgChk" type="checkbox"> Transparent export bg</label></div></div>
+        </div>
+
+        <div class="control">
+          <label>Palette</label>
+          <div class="palette" id="palette"></div>
+        </div>
+      </div>
+
+      <div class="chart-stage">
+        <div id="chart" class="chart"></div>
+      </div>
+      <div class="chart-status status-line" id="chartStatus"><span class="dot"></span><span>Ready.</span></div>
+    </aside>
+  </section>
+
+
+  <section class="v3-bento" id="v3Lab">
+    <article class="v3-card v3-wide" id="insightsCard">
+      <div class="v3-head"><div><div class="v3-title">Smart Insights</div><div class="v3-sub">Auto summary · trends · anomalies</div></div><button class="mini" id="refreshInsightsBtn">Refresh</button></div>
+      <div class="v3-body"><div id="insightsList" class="v3-list"></div></div>
+    </article>
+    <article class="v3-card v3-mid">
+      <div class="v3-head"><div><div class="v3-title">Data Intelligence</div><div class="v3-sub">Column type detection + anomaly scan</div></div></div>
+      <div class="v3-body"><div id="detectedTypes" class="detected-grid"></div><div style="height:9px"></div><div id="anomalyList" class="v3-list"></div></div>
+    </article>
+    <article class="v3-card v3-3col">
+      <div class="v3-head"><div><div class="v3-title">Data Cleaning</div><div class="v3-sub">Clean without leaving the workspace</div></div></div>
+      <div class="v3-body"><div class="clean-grid">
+        <button class="mini" id="trimBtn">Trim whitespace</button><button class="mini" id="dedupeBtn">Remove duplicates</button>
+        <button class="mini" id="blankRowsBtn">Remove blank rows</button><button class="mini" id="blankColsBtn">Remove blank cols</button>
+        <button class="mini" id="fillBlankBtn">Fill blanks</button><button class="mini" id="lowerBtn">Lowercase text</button>
+        <button class="mini" id="upperBtn">Uppercase text</button><button class="mini" id="replaceBtn">Find & replace</button>
+      </div></div>
+    </article>
+    <article class="v3-card v3-3col">
+      <div class="v3-head"><div><div class="v3-title">Sheet Manager</div><div class="v3-sub">Multiple sheets + cross-sheet formula support</div></div></div>
+      <div class="v3-body"><div class="v3-actions"><input id="newSheetName" class="v3-input" style="flex:1;min-width:140px" placeholder="Sheet name"><button class="mini" id="newSheetBtn">+ Sheet</button><button class="mini" id="deleteSheetBtn">Delete</button><button class="mini" id="renameSheetBtn">Rename</button></div></div>
+    </article>
+    <article class="v3-card v3-3col">
+      <div class="v3-head"><div><div class="v3-title">Chart Builder</div><div class="v3-sub">Drag/drop-ish mapping · auto recommend</div></div></div>
+      <div class="v3-body v3-stack"><div class="v3-actions"><button class="mini" id="recommendBtn">Auto recommend</button><button class="mini" id="autoChartBtn">✨ Auto visualize</button></div><div id="chartRecommendation" class="calc-preview">Waiting for data profiling...</div><div class="detected-grid" id="builderFields"></div></div>
+    </article>
+    <article class="v3-card v3-wide">
+      <div class="v3-head"><div><div class="v3-title">Filtering + Calculated Columns</div><div class="v3-sub">Spreadsheet-like filters and formula-driven columns</div></div></div>
+      <div class="v3-body v3-stack"><div id="filterRows"></div><div class="v3-actions"><button class="mini" id="addFilterBtn">+ Filter</button><button class="mini" id="clearFiltersBtn">Clear filters</button></div><div class="v3-grid-3"><div><label class="v3-label">Calculated column name</label><input id="calcName" class="v3-input" placeholder="e.g. Growth"></div><div><label class="v3-label">Formula</label><input id="calcFormula" class="v3-input" placeholder="e.g. =B2-C2"></div><div style="display:flex;align-items:end"><button class="tool primary" id="createCalcBtn" style="width:100%">Create column</button></div></div><div id="calcPreview" class="calc-preview">Preview will appear here.</div></div>
+    </article>
+    <article class="v3-card v3-mid">
+      <div class="v3-head"><div><div class="v3-title">Formula Inspector</div><div class="v3-sub">Trace dependencies and errors</div></div><button class="mini" id="inspectBtn">Inspect selected</button></div>
+      <div class="v3-body"><div id="inspector" class="inspector-tree"></div></div>
+    </article>
+    <article class="v3-card v3-full" id="labControls">
+      <div class="v3-head"><div><div class="v3-title">Studio Controls</div><div class="v3-sub">Theme · project · API · date intelligence · what-if</div></div><div class="v3-actions"><button class="mini" id="darkBtn">Toggle dark</button><button class="mini" id="dashboardBtn">Dashboard</button><button class="mini" id="saveProjectBtn">Save .chartforge</button><button class="mini" id="loadProjectBtn">Open project</button><input id="projectInput" type="file" accept=".chartforge,.json" class="hidden"></div></div>
+      <div class="v3-body"><div class="v3-grid-3">
+        <div class="v3-stack"><div><label class="v3-label">Theme builder</label><div class="v3-grid-2"><input id="themeA" class="v3-input" type="color" value="#1d9b63"><input id="themeB" class="v3-input" type="color" value="#7bdc9f"></div></div><button class="mini" id="applyThemeBtn">Apply custom theme</button></div>
+        <div class="v3-stack"><div><label class="v3-label">Import JSON</label><textarea id="jsonBox" class="v3-textarea" placeholder='[{"Category":"A","Value":10}]'></textarea></div><div class="v3-actions"><button class="mini" id="importJsonBtn">Import JSON</button><button class="mini" id="exportJsonBtn">Export JSON</button></div></div>
+        <div class="v3-stack"><div><label class="v3-label">API / URL import</label><input id="apiUrl" class="v3-input" placeholder="https://example.com/data.json"><div class="api-status" id="apiStatus">Fetches JSON or CSV into a new sheet.</div></div><button class="mini" id="apiImportBtn">Fetch data</button></div>
+      </div><div style="height:12px"></div><div class="v3-grid-3">
+        <div class="v3-stack"><div><label class="v3-label">What-if analysis</label><select id="whatIfCell" class="v3-select"></select></div><div class="v3-grid-2"><input id="whatIfValue" class="v3-input" placeholder="New value"><button class="mini" id="whatIfBtn">Simulate</button></div><div id="whatIfResult" class="calc-preview">Pick a cell to see impact.</div></div>
+        <div class="v3-stack"><div><label class="v3-label">Date intelligence</label><select id="dateColumn" class="v3-select"></select></div><div class="v3-actions"><button class="mini" id="detectDatesBtn">Detect date</button><button class="mini" id="expandDateBtn">Add date parts</button></div><div id="dateStatus" class="calc-preview">No date transformation applied.</div></div>
+        <div class="v3-stack"><div><label class="v3-label">Export density</label><div class="v3-actions"><button class="mini" id="png2Btn">PNG 2×</button><button class="mini" id="png4Btn">PNG 4×</button><button class="mini" id="svgHiBtn">SVG</button></div></div><div class="calc-preview">Vector export uses the active ECharts renderer; PNG scales up without changing the underlying chart.</div></div>
+      </div></div>
+    </article>
+    <article class="v3-card v3-full" id="dashboardCard" style="display:none">
+      <div class="v3-head"><div><div class="v3-title">Dashboard Mode</div><div class="v3-sub">KPI cards + charts · drag to reorder · resize each widget</div></div><div class="v3-actions"><button class="mini" id="addKpiWidgetBtn">+ KPI</button><button class="mini" id="addChartWidgetBtn">+ Chart</button><button class="mini" id="closeDashboardBtn">Close</button></div></div>
+      <div id="dashboardGrid" class="dashboard-grid"></div>
+    </article>
+  </section>
+
+  <div id="sheetTabsMount"></div>
+  <div id="filterModal" class="modal hidden"><div class="modal-card modal-wide"><div class="modal-head"><h2>Find & Replace</h2><button class="mini" data-close="filterModal">Close</button></div><div class="v3-grid-2"><input id="replaceFrom" class="v3-input" placeholder="Find"><input id="replaceTo" class="v3-input" placeholder="Replace with"></div><div style="height:10px"></div><button class="tool primary" id="doReplaceBtn">Replace all</button></div></div>
+  <div id="commandPalette" class="command-palette hidden"><div class="command-card"><input id="commandInput" class="command-input" placeholder="Type a command… e.g. export svg"><div id="commandList"></div></div></div>
+  <div id="eggModal" class="egg hidden"><div class="egg-card"><div class="code">IDENTITY HANDSHAKE</div><h2>ikyoll</h2><p>Two keys. One tiny door. The workspace has a little secret layer now.</p><div class="v3-actions" style="justify-content:center"><button class="tool primary" id="closeEgg">Return to ChartForge</button></div></div></div>
+
+  <section class="metrics-bento panel">
+    <div class="metric"><b id="rowMetric">0</b><span>Rows</span></div>
+    <div class="metric"><b id="colMetric">0</b><span>Columns</span></div>
+    <div class="metric"><b id="seriesMetric">0</b><span>Numeric series</span></div>
+    <div class="metric"><b id="formulaMetric">0</b><span>Formulas</span></div>
+  </section>
+
+  <section class="features-bento">
+    <article class="feature-card">
+      <div class="feature-label">Spreadsheet</div>
+      <h3>Excel-style workflow</h3>
+      <p>Import XLSX/CSV, paste ranges, edit cells, navigate with the keyboard, add/delete dimensions, and reuse formula outputs.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-label">Formula engine</div>
+      <h3>From = to insights</h3>
+      <p>Use A1 references with SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, IF, ABS, SQRT and ROUND while keeping formula cells distinct.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-label">Visualization</div>
+      <h3>Realtime chart studio</h3>
+      <p>Bar, line, area, scatter, pie, doughnut and radar with series selection, palettes, labels, stacking, grid, zoom and axis labels.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-label">Portable</div>
+      <h3>Export the result</h3>
+      <p>Move your data and charts out as CSV, XLSX, SVG or PNG. Local autosave keeps the current workspace in this browser.</p>
+    </article>
+  </section>
+
+  <footer>
+    <span>yourr-ikyy? · ChartForge · client-side data tooling</span>
+    <span class="footer-links">
+      <a href="https://github.com/yourr-ikyy" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://www.instagram.com/your_ikyz/" target="_blank" rel="noreferrer">Instagram</a>
+      <a href="https://codepen.io/eL-Fikyzz" target="_blank" rel="noreferrer">CodePen</a>
+      <a href="https://dev.to/yourrikyy" target="_blank" rel="noreferrer">dev.to</a>
+      <a href="https://steamcommunity.com/id/skibadifikyz" target="_blank" rel="noreferrer">Steam · skibadifikyz</a>
+    </span>
+  </footer>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="helpModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Formula help</h2>
+      <button class="mini" id="closeHelp">Close</button>
+    </div>
+    <p>ChartForge uses lightweight Excel-style A1 references. Type formulas beginning with <code>=</code> in a cell.</p>
+    <ul>
+      <li>Arithmetic: <code>=B2+C2</code>, <code>=B2*C2</code>, <code>=(B2+C2)/2</code>, <code>=B2^2</code></li>
+      <li>Aggregates: <code>=SUM(B2:B10)</code>, <code>=AVERAGE(B2:B10)</code>, <code>=MIN(B2:B10)</code>, <code>=MAX(B2:B10)</code></li>
+      <li>Counts: <code>=COUNT(B2:B10)</code>, <code>=COUNTA(B2:B10)</code></li>
+      <li>Functions: <code>=ABS(C2)</code>, <code>=SQRT(C2)</code>, <code>=ROUND(C2,2)</code></li>
+      <li>Keyboard: <span class="kbd">Enter</span> commits, <span class="kbd">Esc</span> restores, arrow keys move selection.</li>
+    </ul>
+    <p>Formulas are calculated locally. This is intentionally a compact formula engine, not a complete Microsoft Excel implementation.</p>
+  </div>
+</div>
+
+
+<script>
+(() => {
+  "use strict";
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const gridEl=$("#grid"), chartEl=$("#chart"), formulaBar=$("#formulaBar"), nameBox=$("#nameBox"), statusEl=$("#chartStatus"), toastEl=$("#toast");
+  const palettes={aurora:["#6CA9FF","#8E7CFF","#49D6A0","#F6C45B","#FF7187","#61D2E8","#C78CFF","#A7E65C"],ocean:["#4DA3FF","#2E79FF","#52D1DC","#43B4A5","#74C69D","#91B6E9","#A5C4FF","#D0E2FF"],neon:["#00F5D4","#00BBF9","#9B5DE5","#F15BB5","#FEE440","#FB5607","#FF006E","#80FFDB"],mono:["#E7EEF8","#C8D4E6","#A9B9D0","#8CA0BA","#7187A4","#5D7593","#4A6381","#37506E"]};
+  let activePalette="aurora", chart=null, saveTimer=null, searchTerm="", dark=false, dashboardMode=false, filterRules=[], customTheme=null, dashCharts=[];
+  let selected={r:0,c:0}, history=[], future=[];
+  let sheets={}, activeSheet="Sheet1";
+  const defaultData=[["Category","Value A","Value B","Value C"],["Alpha",12,23,8],["Beta",19,18,11],["Gamma",27,31,15],["Delta",22,28,13],["Epsilon",34,39,19]];
+  sheets.Sheet1={data:defaultData.map(r=>r.slice()),rows:defaultData.length,cols:4,series:[1,2,3],xAxis:0,title:"Your Data Visualization",subtitle:"",legend:"bottom",fontSize:12,smooth:false,stack:false,grid:true,labels:false,zoom:false,bg:"#f7fbf8",axisName:"",xAxisName:"",chartType:"bar",lineWidth:2,pointSize:8,opacity:1,yScale:"value",yMin:"",yMax:"",xRotate:0,transparentBg:false,filters:[]};
+  const st=()=>sheets[activeSheet];
+  const clone=v=>JSON.parse(JSON.stringify(v));
+  function colName(n){let s="";n++;while(n){let r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26)}return s}
+  function colIndex(s){let n=0;for(const ch of String(s).toUpperCase())n=n*26+(ch.charCodeAt(0)-64);return n-1}
+  function addr(r,c){return colName(c)+(r+1)}
+  function numeric(v){if(typeof v==="number")return Number.isFinite(v)?v:null;const s=String(v??"").trim().replace(/,/g,"").replace(/%$/," / 100");if(s.trim()==="")return null;const n=Number(s);return Number.isFinite(n)?n:null}
+  function formatValue(v){if(v===null||v===undefined||v==="")return "";if(typeof v==="string")return v;if(!Number.isFinite(v))return String(v);if(Math.abs(v)>=1e9||(Math.abs(v)>0&&Math.abs(v)<1e-5))return v.toExponential(3);return Number(v.toFixed(6)).toLocaleString("en-US")}
+  function parseCellRef(ref){const m=String(ref).toUpperCase().match(/^([A-Z]{1,3})(\d+)$/);return m?{r:Number(m[2])-1,c:colIndex(m[1])}:null}
+  function splitArgs(s){const out=[];let cur="",depth=0,quote="";for(const ch of String(s)){if(quote){cur+=ch;if(ch===quote)quote="";continue}if(ch==='"'||ch==="'"){quote=ch;cur+=ch;continue}if(ch==="("){depth++;cur+=ch;continue}if(ch===")"){depth--;cur+=ch;continue}if(ch===","&&depth===0){out.push(cur.trim());cur=""}else cur+=ch}if(cur.trim()||s.endsWith(","))out.push(cur.trim());return out}
+  function rangeRefs(range){const [a,b]=String(range).toUpperCase().split(":");const A=parseCellRef(a),B=parseCellRef(b||a);if(!A||!B)return [];const r1=Math.min(A.r,B.r),r2=Math.max(A.r,B.r),c1=Math.min(A.c,B.c),c2=Math.max(A.c,B.c),refs=[];for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)refs.push({r,c});return refs}
+  function getCellRaw(r,c){const sh=st();return String(sh.data[r]?.[c]??"")}
+  function evalExpression(expr,stack=[]){
+    let i=0;const source=String(expr);const sh=st();
+    const ws=()=>{while(/\s/.test(source[i]||""))i++};
+    const fail=msg=>{throw new Error(msg||"#ERROR!")};
+    const flat=a=>a.flat(Infinity);
+    const toNumber=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+    function parseString(){ws();const q=source[i];if(q!=="\""&&q!=="'")return null;i++;let out="";while(i<source.length){const ch=source[i++];if(ch===q)return out;out+=ch}fail("#ERROR!")}
+    function readReference(){
+      ws();const rest=source.slice(i);
+      const m=rest.match(/^(?:[A-Za-z_][A-Za-z0-9_]*!)?[A-Z]{1,3}\d+/i);if(!m)return null;
+      let token=m[0];i+=token.length;ws();
+      if(source[i]===":"){
+        i++;ws();const m2=source.slice(i).match(/^(?:[A-Za-z_][A-Za-z0-9_]*!)?[A-Z]{1,3}\d+/i);if(!m2)fail("#REF!");token+=":"+m2[0];i+=m2[0].length;
+      }
+      return token;
+    }
+    function resolveOne(token){
+      const bang=token.indexOf("!");let sheetName=activeSheet,cellToken=token;
+      if(bang>=0){sheetName=token.slice(0,bang);cellToken=token.slice(bang+1)}
+      const ref=parseCellRef(cellToken);if(!ref||!sheets[sheetName])fail("#REF!");
+      if(sheetName===activeSheet)return evalCell(ref.r,ref.c,stack);
+      const old=activeSheet;try{activeSheet=sheetName;return evalCell(ref.r,ref.c,stack)}finally{activeSheet=old}
+    }
+    function resolveRef(token){
+      if(token.includes(":")){const [a,b]=token.split(":");const bangA=a.indexOf("!"),bangB=b.indexOf("!");if(bangA>=0||bangB>=0){const sa=bangA>=0?a.slice(0,bangA):activeSheet;const sb=bangB>=0?b.slice(0,bangB):sa;if(sa!==sb)fail("#REF!");const ca=bangA>=0?a.slice(bangA+1):a,cb=bangB>=0?b.slice(bangB+1):b;const A=parseCellRef(ca),B=parseCellRef(cb);if(!A||!B||!sheets[sa])fail("#REF!");const old=activeSheet;try{activeSheet=sa;const vals=[];for(let r=Math.min(A.r,B.r);r<=Math.max(A.r,B.r);r++)for(let c=Math.min(A.c,B.c);c<=Math.max(A.c,B.c);c++)vals.push(evalCell(r,c,stack));return vals}finally{activeSheet=old}}return rangeRefs(token).map(ref=>evalCell(ref.r,ref.c,stack));}
+      return resolveOne(token);
+    }
+    function parsePrimary(){
+      ws();const str=parseString();if(str!==null)return str;
+      if(source[i]==="("){i++;const v=parseCompare();ws();if(source[i]!==")")fail("#ERROR!");i++;return v}
+      const ref=readReference();if(ref)return resolveRef(ref);
+      const num=source.slice(i).match(/^(?:\d+\.?\d*|\.\d+)(?:[eE][+\-]?\d+)?/);if(num){i+=num[0].length;return Number(num[0])}
+      const id=source.slice(i).match(/^[A-Za-z_][A-Za-z0-9_]*/);if(id){i+=id[0].length;const name=id[0].toUpperCase();ws();if(source[i]==="("){i++;const args=[];ws();if(source[i]===")"){i++;return runFn(name,args)}while(i<source.length){args.push(parseCompare());ws();if(source[i]===","){i++;continue}if(source[i]===")"){i++;break}fail("#ERROR!")}return runFn(name,args)}if(name==="TRUE")return true;if(name==="FALSE")return false;fail("#NAME?")}
+      fail("#ERROR!")
+    }
+    function parseUnary(){ws();if(source[i]==="+"){i++;return +toNumber(parseUnary())}if(source[i]==="-"){i++;return -toNumber(parseUnary())}return parsePrimary()}
+    function parsePow(){let left=parseUnary();ws();if(source[i]==="^"){i++;left=toNumber(left)**toNumber(parsePow())}return left}
+    function parseMul(){let left=parsePow();while(true){ws();const op=source[i];if(!"*/%".includes(op))break;i++;const right=parsePow();if(op==="*")left=toNumber(left)*toNumber(right);else if(op==="/"){if(toNumber(right)===0)fail("#DIV/0!");left=toNumber(left)/toNumber(right)}else left=toNumber(left)%toNumber(right)}return left}
+    function parseAdd(){let left=parseMul();while(true){ws();const op=source[i];if(op!=="+"&&op!=="-")break;i++;const right=parseMul();left=op==="+"?toNumber(left)+toNumber(right):toNumber(left)-toNumber(right)}return left}
+    function parseCompare(){let left=parseAdd();ws();const m=source.slice(i).match(/^(>=|<=|!=|==|=|>|<)/);if(!m)return left;i+=m[0].length;const right=parseAdd();switch(m[0]){case "=":case "==":return left==right;case "!=":return left!=right;case ">":return left>right;case "<":return left<right;case ">=":return left>=right;case "<=":return left<=right}return false}
+    function runFn(name,args){
+      const vals=flat(args);const nums=vals.map(Number).filter(Number.isFinite);
+      if(name==="SUM")return nums.reduce((a,b)=>a+b,0);
+      if(name==="AVERAGE"||name==="AVG")return nums.length?nums.reduce((a,b)=>a+b,0)/nums.length:0;
+      if(name==="MEDIAN"){if(!nums.length)return 0;nums.sort((a,b)=>a-b);const m=Math.floor(nums.length/2);return nums.length%2?nums[m]:(nums[m-1]+nums[m])/2}
+      if(name==="MODE"){if(!nums.length)return 0;const map=new Map();let best=nums[0],bc=0;for(const n of nums){const c=(map.get(n)||0)+1;map.set(n,c);if(c>bc){bc=c;best=n}}return best}
+      if(name==="MIN")return nums.length?Math.min(...nums):0;
+      if(name==="MAX")return nums.length?Math.max(...nums):0;
+      if(name==="COUNT")return nums.length;
+      if(name==="COUNTA")return vals.filter(v=>v!==""&&v!==null&&v!==undefined).length;
+      if(name==="ABS")return Math.abs(toNumber(args[0]));
+      if(name==="SQRT")return Math.sqrt(toNumber(args[0]));
+      if(name==="POWER")return toNumber(args[0])**toNumber(args[1]);
+      if(name==="ROUND")return Math.round(toNumber(args[0])*10**toNumber(args[1]||0))/10**toNumber(args[1]||0);
+      if(name==="ROUNDUP")return Math.ceil(toNumber(args[0])*10**toNumber(args[1]||0))/10**toNumber(args[1]||0);
+      if(name==="ROUNDDOWN")return Math.floor(toNumber(args[0])*10**toNumber(args[1]||0))/10**toNumber(args[1]||0);
+      if(name==="IF")return args[0]?args[1]??"":args[2]??"";
+      if(name==="AND")return args.every(Boolean);
+      if(name==="OR")return args.some(Boolean);
+      fail("#NAME?");
+    }
+    const result=parseCompare();ws();if(i<source.length)fail("#ERROR!");if(typeof result==="number"&&!Number.isFinite(result))fail("#ERROR!");return result;
+  }
+  function evalCell(r,c,stack=[]){const sh=st();if(r<0||c<0||r>=sh.data.length||c>=sh.cols)return 0;const key=`${activeSheet}!${r}:${c}`;if(stack.includes(key))throw new Error("#CYCLE!");const raw=getCellRaw(r,c);if(!raw.startsWith("=")){const n=numeric(raw);return n!==null?n:raw}const f=raw.slice(1).trim();if(!f)return null;const m=f.match(/^([A-Z][A-Z0-9_]*)\!([A-Z]+\d+)$/i);if(m&&sheets[m[1]]){const old=activeSheet;activeSheet=m[1];const ref=parseCellRef(m[2]);const v=evalCell(ref.r,ref.c,[...stack,key]);activeSheet=old;return v}return evalExpression(f,[...stack,key])}
+  function displayCell(r,c){const raw=getCellRaw(r,c);if(!raw.startsWith("="))return{value:raw,error:false};try{return{value:formatValue(evalCell(r,c,[])),error:false}}catch(e){return{value:e.message,error:true}}}
+  function snapshot(){return{activeSheet,sheets:clone(sheets),selected:clone(selected),dark,activePalette,dashboardMode}}
+  function pushHistory(){history.push(snapshot());if(history.length>50)history.shift();future=[];updateUndoRedo()}
+  function restore(s){sheets=clone(s.sheets);activeSheet=s.activeSheet;selected=s.selected;dark=!!s.dark;activePalette=s.activePalette||"aurora";dashboardMode=!!s.dashboardMode;applyDark();renderAll();updateUndoRedo()}
+  function updateUndoRedo(){$("#undoBtn").disabled=!history.length;$("#redoBtn").disabled=!future.length}
+  function filteredRows(){const sh=st();if(!sh.filters?.length)return [...Array(sh.data.length-1)].map((_,i)=>i+1);return [...Array(sh.data.length-1)].map((_,i)=>i+1).filter(r=>sh.filters.every(rule=>{const raw=String(sh.data[r]?.[rule.c]??"");const q=String(rule.value??"").toLowerCase();const v=numeric(raw);if(rule.op==="contains")return raw.toLowerCase().includes(q);if(rule.op==="=")return raw.toLowerCase()===q;if(rule.op===">")return v!==null&&v>Number(rule.value);if(rule.op==="<")return v!==null&&v<Number(rule.value);if(rule.op===">=")return v!==null&&v>=Number(rule.value);if(rule.op==="<=")return v!==null&&v<=Number(rule.value);return true}))}
+  function renderGrid(){const sh=st();gridEl.innerHTML="";gridEl.style.gridTemplateColumns=`42px repeat(${sh.cols},105px)`;const frag=document.createDocumentFragment();let corner=document.createElement("div");corner.className="gcell corner";frag.appendChild(corner);for(let c=0;c<sh.cols;c++){const h=document.createElement("div");h.className="gcell colhead sortable-colhead";h.draggable=true;h.dataset.c=c;h.textContent=colName(c);h.title=`Drag ${colName(c)} to reorder`;h.ondragstart=e=>{e.dataTransfer.setData("text/plain",String(c));h.classList.add("dragging")};h.ondragend=()=>h.classList.remove("dragging");h.ondragover=e=>e.preventDefault();h.ondrop=e=>{e.preventDefault();const from=Number(e.dataTransfer.getData("text/plain")),to=c;if(from===to)return;pushHistory();sh.data.forEach(row=>{const x=row.splice(from,1)[0];row.splice(to,0,x)});if(sh.series){sh.series=sh.series.map(i=>i===from?to:i>from&&i<=to?i-1:i<from&&i>=to?i+1:i)};if(sh.xAxis===from)sh.xAxis=to;renderAll();toast(`Moved ${colName(from)} → ${colName(to)}.`)};frag.appendChild(h)}
+    const visible=filteredRows();for(let r=0;r<sh.rows;r++){const rh=document.createElement("div");rh.className="gcell rowhead";rh.textContent=r+1;frag.appendChild(rh);for(let c=0;c<sh.cols;c++){const wrap=document.createElement("div");wrap.className="gcell";const input=document.createElement("input");input.className="cell";input.setAttribute("list","formulaFunctions");input.dataset.r=r;input.dataset.c=c;const disp=displayCell(r,c);input.value=disp.value;const raw=getCellRaw(r,c);if(raw.startsWith("="))input.classList.add("formula-cell");if(disp.error)input.classList.add("error-cell");if(!raw.startsWith("=")&&numeric(raw)!==null)input.classList.add("number-cell");if(r>0&&!visible.includes(r)){input.disabled=true;input.title="Hidden by active filter"}else input.title=`${addr(r,c)}${raw.startsWith("=")?" · formula":""}`;input.addEventListener("focus",()=>{selected={r,c};updateFormulaBar();highlightSelection();updateWhatIfCells();updateInspector()});input.addEventListener("keydown",e=>{if(e.key==="Escape"){input.value=displayCell(r,c).value;input.blur();return}if(e.key==="Enter"){commitCell(r,c,input.value,true);e.preventDefault()}else if(e.key==="Tab"){commitCell(r,c,input.value,false);e.preventDefault();moveSelection(r,c,e.shiftKey?-1:1,0)}else if(["ArrowDown","ArrowUp"].includes(e.key)&&document.activeElement===input&&!e.shiftKey){commitCell(r,c,input.value,false);moveSelection(r,c,0,e.key==="ArrowDown"?1:-1);e.preventDefault()}});input.addEventListener("change",()=>commitCell(r,c,input.value,false));wrap.appendChild(input);frag.appendChild(wrap)}}gridEl.appendChild(frag);highlightSelection();searchData(searchTerm)}
+  function highlightSelection(){gridEl.querySelectorAll(".cell").forEach(el=>el.style.boxShadow="");const el=gridEl.querySelector(`.cell[data-r="${selected.r}"][data-c="${selected.c}"]`);if(el)el.style.boxShadow="inset 0 0 0 2px #59b987"}
+  function updateFormulaBar(){const sh=st();nameBox.value=addr(selected.r,selected.c);formulaBar.value=getCellRaw(selected.r,selected.c);}
+  function moveSelection(r,c,dc,dr){const sh=st();selected={r:Math.max(0,Math.min(sh.rows-1,r+dr)),c:Math.max(0,Math.min(sh.cols-1,c+dc))};renderGrid();const el=gridEl.querySelector(`.cell[data-r="${selected.r}"][data-c="${selected.c}"]`);el?.focus();el?.select();updateFormulaBar()}
+  function commitCell(r,c,v,moveDown){const sh=st();pushHistory();while(sh.data.length<=r)sh.data.push(Array(sh.cols).fill(""));while(sh.cols<=c){sh.cols++;sh.data.forEach(row=>row.push(""))}sh.data[r][c]=v;sh.rows=sh.data.length;sh.cols=Math.max(sh.cols,...sh.data.map(x=>x.length));scheduleAutosave();renderAll();if(moveDown)moveSelection(r,c,0,1)}
+  function addRow(){pushHistory();const sh=st();sh.data.push(Array(sh.cols).fill(""));sh.rows=sh.data.length;renderAll()}
+  function addCol(){pushHistory();const sh=st();sh.cols++;sh.data.forEach(r=>r.push(""));renderAll()}
+  function deleteRow(){if(st().rows<=1)return;pushHistory();st().data.splice(selected.r,1);st().rows=st().data.length;selected.r=Math.max(0,Math.min(selected.r,st().rows-1));renderAll()}
+  function deleteCol(){if(st().cols<=1)return;pushHistory();st().data.forEach(r=>r.splice(selected.c,1));st().cols--;selected.c=Math.max(0,Math.min(selected.c,st().cols-1));renderAll()}
+  function clearData(){pushHistory();const sh=st();sh.data=Array.from({length:sh.rows},()=>Array(sh.cols).fill(""));renderAll();toast("Data cleared.")}
+  function sortSelected(dir){const sh=st();if(selected.c<0)return;pushHistory();const header=sh.data[0];const body=sh.data.slice(1);body.sort((a,b)=>{const na=numeric(a[selected.c]),nb=numeric(b[selected.c]);const cmp=na!==null&&nb!==null?na-nb:String(a[selected.c]??"").localeCompare(String(b[selected.c]??""));return dir==="asc"?cmp:-cmp});sh.data=[header,...body];renderAll();toast(`Sorted ${dir}.`)}
+  function fillDown(){const sh=st();if(selected.r<1)return;const src=String(sh.data[selected.r]?.[selected.c]??"");if(!src)return;pushHistory();for(let r=selected.r;r<sh.rows;r++){let v=src;if(/^=/.test(src)){v=src.replace(/([A-Z]+)(\d+)/g,(_,col,row)=>`${col}${Number(row)+(r-selected.r)}`)}sh.data[r][selected.c]=v}renderAll();toast("Filled down.")}
+  function searchData(term){searchTerm=term||"";gridEl.querySelectorAll(".cell").forEach(el=>{const r=Number(el.dataset.r),c=Number(el.dataset.c),raw=getCellRaw(r,c).toLowerCase();el.style.background=searchTerm&&raw.includes(searchTerm.toLowerCase())?"rgba(108,169,255,.14)":""})}
+  function computedCellNumber(r,c){try{const v=evalCell(r,c,[]);return typeof v==="number"&&Number.isFinite(v)?v:numeric(v)}catch{return null}}
+  function getNumericCols(){const sh=st(),out=[];for(let c=0;c<sh.cols;c++){const vals=sh.data.slice(1).map((r,i)=>String(r[c]??"").startsWith("=")?computedCellNumber(i+1,c):numeric(r[c])).filter(v=>v!==null);if(vals.length>=Math.max(2,Math.floor((sh.rows-1)*.35)))out.push(c)}return out}
+  function detectColumnType(c){const sh=st(),vals=sh.data.slice(1).map((r,i)=>String(r[c]??"").startsWith("=")?computedCellNumber(i+1,c):r[c]).map(v=>v==null?"":String(v).trim()).filter(Boolean);if(!vals.length)return"Empty";const nums=vals.filter(v=>numeric(v)!==null);const dates=vals.filter(v=>!Number.isNaN(Date.parse(v)));const bools=vals.filter(v=>/^(true|false)$/i.test(v));if(nums.length/vals.length>.8)return"Number";if(bools.length/vals.length>.8)return"Boolean";if(dates.length/vals.length>.8)return"Date";return"Text"}
+  function profileData(){const sh=st();return{numeric:getNumericCols(),types:Array.from({length:sh.cols},(_,c)=>detectColumnType(c))}}
+  function getSeriesData(){const sh=st(),x=Number(sh.xAxis||0),series=(sh.series||getNumericCols()).filter(c=>c<sh.cols&&c!==x);const rowsVisible=filteredRows();const labels=rowsVisible.map(r=>String(sh.data[r]?.[x]??r));const s=series.map(c=>({c,name:String(sh.data[0]?.[c]??colName(c)),values:rowsVisible.map(r=>numeric(sh.data[r]?.[c]))}));return{labels,series:s}}
+  function buildSeriesChecks(){const sh=st(),wrap=$("#seriesChecks");wrap.innerHTML="";for(let c=0;c<sh.cols;c++){if(c===sh.xAxis)continue;const id=`ser_${c}`;const lab=document.createElement("label");lab.className="check";const cb=document.createElement("input");cb.type="checkbox";cb.checked=(sh.series||[]).includes(c);cb.onchange=()=>{sh.series=Array.from(wrap.querySelectorAll("input:checked")).map(x=>Number(x.dataset.c));updateChart()};cb.dataset.c=c;lab.append(cb,document.createTextNode(String(sh.data[0]?.[c]??colName(c))));wrap.appendChild(lab)}}
+  function buildXAxis(){const sh=st(),sel=$("#xAxis");sel.innerHTML="";for(let c=0;c<sh.cols;c++){const o=document.createElement("option");o.value=c;o.textContent=`${colName(c)} · ${sh.data[0]?.[c]??""}`;sel.appendChild(o)}sel.value=String(sh.xAxis||0)}
+  function makeOption(){const sh=st(),{labels,series}=getSeriesData(),type=sh.chartType||"bar",colorList=palettes[activePalette]||palettes.aurora,axisShow=!['pie','doughnut','funnel','gauge'].includes(type);if(type==="pie"||type==="doughnut"){const entries=labels.map((name,i)=>({name,value:series[0]?.values?.[i]??0}));return{backgroundColor:sh.bg,animationDuration:300,title:{text:sh.title,subtext:sh.subtitle,left:"center",textStyle:{fontSize:sh.fontSize,color:getComputedStyle(document.body).getPropertyValue("--text")||"#15231a"}},legend:{show:sh.legend!=="none",position:sh.legend,orient:["left","right"].includes(sh.legend)?"vertical":"horizontal",textStyle:{fontSize:sh.fontSize}},tooltip:{trigger:"item"},series:[{type:"pie",radius:type==="doughnut"?["46%","74%"]:"68%",data:entries,label:{show:sh.labels}}]}}
+    if(type==="funnel"){const entries=labels.map((name,i)=>({name,value:series[0]?.values?.[i]??0}));return{backgroundColor:sh.bg,title:{text:sh.title,subtext:sh.subtitle,left:"center",textStyle:{fontSize:sh.fontSize}},tooltip:{trigger:"item"},series:[{type:"funnel",left:"8%",top:70,bottom:25,width:"84%",min:0,sort:"descending",data:entries,label:{show:sh.labels}}]}}
+    if(type==="gauge"){const val=series[0]?.values?.filter(v=>v!==null)[series[0]?.values?.filter(v=>v!==null).length-1]??0;return{backgroundColor:sh.bg,title:{text:sh.title,subtext:sh.subtitle,left:"center",textStyle:{fontSize:sh.fontSize}},series:[{type:"gauge",min:0,max:Math.max(100,Math.ceil(val/10)*10),progress:{show:true},detail:{formatter:"{value}",fontSize:20},data:[{value:val,name:series[0]?.name||"Value"}]}]}}
+    return{backgroundColor:sh.bg,title:{text:sh.title,subtext:sh.subtitle,left:"center",textStyle:{fontSize:sh.fontSize,color:getComputedStyle(document.body).getPropertyValue("--text")||"#15231a"}},color:colorList,tooltip:{trigger:"axis"},legend:{show:sh.legend!=="none",top:sh.legend==="top"?0:undefined,bottom:sh.legend==="bottom"?0:undefined,left:sh.legend==="left"?0:undefined,right:sh.legend==="right"?0:undefined,orient:["left","right"].includes(sh.legend)?"vertical":"horizontal",textStyle:{fontSize:sh.fontSize}},grid:{left:48,right:20,top:70,bottom:48,containLabel:true},dataZoom:sh.zoom?[{type:"inside"},{type:"slider",height:18,bottom:8}]:[],xAxis:{type:type==="scatter"?"value":"category",data:type==="scatter"?undefined:labels,name:sh.xAxisName||"",show:axisShow,axisLabel:{fontSize:sh.fontSize,rotate:Number(sh.xRotate||0)}},yAxis:{type:sh.yScale||"value",name:sh.axisName||"",min:sh.yMin!==""&&sh.yMin!=null?Number(sh.yMin):undefined,max:sh.yMax!==""&&sh.yMax!=null?Number(sh.yMax):undefined,splitLine:{show:sh.grid!==false},axisLabel:{fontSize:sh.fontSize}},series:series.map(s=>{const vals=s.values.map((v,i)=>type==="scatter"?[i,v??0]:v??0);return{name:s.name,type:type==="area"?"line":type,data:vals,smooth:sh.smooth,stack:sh.stack?"total":undefined,areaStyle:type==="area"?{opacity:Number(sh.opacity??1)}:undefined,label:{show:sh.labels},symbolSize:type==="scatter"?Number(sh.pointSize||9):Number(sh.pointSize||8),lineStyle:{width:Number(sh.lineWidth||2)},itemStyle:{opacity:Number(sh.opacity??1)}}})}
+  }
+  function updateChart(){if(!chart){chart=echarts.init(chartEl,null,{renderer:"svg"});window.addEventListener("resize",()=>chart?.resize());chart.on("click",params=>{if(params.componentType==="series"&&params.dataIndex!==undefined){const sh=st();const row=filteredRows()[params.dataIndex];if(row!==undefined){selected={r:row,c:sh.xAxis||0};renderGrid();updateFormulaBar();toast(`Selected ${addr(row,sh.xAxis||0)} from chart.`)}}});}chart.setOption(makeOption(),true);statusEl.querySelector("span:last-child").textContent=`${getSeriesData().labels.length} visible rows · ${getSeriesData().series.length} series`}
+  function updateMetrics(){const sh=st();$("#rowMetric").textContent=Math.max(0,sh.rows-1);$("#colMetric").textContent=sh.cols;$("#seriesMetric").textContent=getNumericCols().length;$("#formulaMetric").textContent=sh.data.flat().filter(v=>String(v).startsWith("=")).length}
+  function updatePalette(){const p=$("#palette");p.innerHTML="";Object.entries(palettes).forEach(([name,arr])=>{const wrap=document.createElement("div");wrap.className="v3-actions";const b=document.createElement("button");b.className="mini";b.textContent=name;b.onclick=()=>{activePalette=name;renderPalette();updateChart();scheduleAutosave()};wrap.append(b);p.appendChild(wrap)})}
+  function renderPalette(){const wrap=$("#palette");wrap.innerHTML="";Object.entries(palettes).forEach(([name,arr])=>{const sw=document.createElement("button");sw.className="swatch "+(name===activePalette?"active":"");sw.title=name;sw.style.background=`linear-gradient(90deg,${arr.slice(0,4).join(",")})`;sw.onclick=()=>{activePalette=name;renderPalette();updateChart()};wrap.appendChild(sw)})}
+  function updateInsights(){const sh=st(),{labels,series}=getSeriesData(),list=$("#insightsList");const rows=[];series.forEach(s=>{const v=s.values.filter(x=>x!==null),sum=v.reduce((a,b)=>a+b,0),avg=v.length?sum/v.length:0,min=v.length?Math.min(...v):0,max=v.length?Math.max(...v):0;let delta=null;if(v.length>=2)delta=((v[v.length-1]-v[0])/(Math.abs(v[0])||1))*100;rows.push({cls:delta!==null&&delta>0?"insight-good":delta!==null&&delta<0?"insight-warn":"",title:`${s.name}: ${formatValue(avg)} average`,desc:`Range ${formatValue(min)} → ${formatValue(max)}${delta!==null?` · overall change ${delta.toFixed(1)}%`:""}`});});if(series[0]?.values?.length){const s=series[0],v=s.values.map((x,i)=>({x,i})).filter(o=>o.x!==null);if(v.length){const hi=v.reduce((a,b)=>b.x>a.x?b:a),lo=v.reduce((a,b)=>b.x<a.x?b:a);rows.unshift({cls:"insight-good",title:`Highest ${s.name}: ${formatValue(hi.x)}`,desc:`${labels[hi.i]??"row " + (hi.i+1)}`},{cls:"insight-warn",title:`Lowest ${s.name}: ${formatValue(lo.x)}`,desc:`${labels[lo.i]??"row " + (lo.i+1)}`})}}list.innerHTML=rows.slice(0,8).map(x=>`<div class="v3-item ${x.cls}"><div><strong>${escapeHtml(x.title)}</strong><span>${escapeHtml(x.desc)}</span></div></div>`).join("")||`<div class="v3-item"><div><strong>No numeric series yet</strong><span>Add numeric data to generate insights.</span></div></div>`}
+  function updateTypesAndAnomalies(){const sh=st(),p=profileData();$("#detectedTypes").innerHTML=Array.from({length:sh.cols},(_,c)=>`<div class="detected"><strong>${escapeHtml(colName(c))} · ${escapeHtml(String(sh.data[0]?.[c]??""))}</strong><span>${p.types[c]}</span></div>`).join("");const anomalies=[];for(const c of p.numeric){const vals=sh.data.slice(1).map((r,i)=>({v:numeric(r[c]),r:i+1})).filter(o=>o.v!==null);if(vals.length<4)continue;const mean=vals.reduce((a,b)=>a+b.v,0)/vals.length;const sd=Math.sqrt(vals.reduce((a,b)=>a+(b.v-mean)**2,0)/vals.length)||1;vals.forEach(o=>{if(Math.abs(o.v-mean)>2.2*sd)anomalies.push(`Row ${o.r} · ${colName(c)} = ${formatValue(o.v)}`)})}$("#anomalyList").innerHTML=anomalies.length?anomalies.slice(0,8).map(x=>`<div class="v3-item insight-bad"><div><strong>Possible anomaly</strong><span>${escapeHtml(x)}</span></div></div>`).join(""): `<div class="v3-item insight-good"><div><strong>No obvious anomalies</strong><span>Simple z-score style scan found nothing notable.</span></div></div>`}
+  function recommendChart(){const sh=st(),p=profileData(),nums=p.numeric,dates=p.types.filter(x=>x==="Date").length;let type="bar",why="Categorical labels + numeric series";if(dates&&nums.length)type="line",why="Date/time column + numeric series";else if(nums.length===1&&sh.rows-1<=8)type="pie",why="Single numeric series with a compact category set";else if(nums.length>=2)type="bar",why="Multiple numeric series detected";$("#chartRecommendation").innerHTML=`<div><strong>Recommended: ${type.toUpperCase()}</strong><span style="display:block;margin-top:4px;color:var(--muted)">${escapeHtml(why)}</span></div>`;return type}
+  function autoVisualize(){pushHistory();const sh=st();sh.chartType=recommendChart();sh.xAxis=sh.xAxis||0;sh.series=getNumericCols();syncControlValues();renderAll();toast(`Auto visualized as ${sh.chartType}.`)}
+  function updateBuilderFields(){const sh=st(),wrap=$("#builderFields");wrap.innerHTML="";const xZone=document.createElement("div");xZone.className="detected";xZone.dataset.role="x";xZone.innerHTML=`<strong>X / Category</strong><span>Drop a column chip here</span>`;const sZone=document.createElement("div");sZone.className="detected";sZone.dataset.role="series";sZone.innerHTML=`<strong>Series</strong><span>Drop numeric column chips here</span>`;[xZone,sZone].forEach(z=>{z.ondragover=e=>e.preventDefault();z.ondrop=e=>{e.preventDefault();const c=Number(e.dataTransfer.getData("column"));if(z.dataset.role==="x")sh.xAxis=c;else sh.series=[...new Set([...(sh.series||[]),c])];syncControlValues();updateChart();renderAll();toast("Chart mapping updated.")}});wrap.append(xZone,sZone);for(let c=0;c<sh.cols;c++){const chip=document.createElement("button");chip.className="mini";chip.draggable=true;chip.textContent=`${colName(c)} · ${String(sh.data[0]?.[c]??"").slice(0,18)}`;chip.ondragstart=e=>e.dataTransfer.setData("column",String(c));chip.onclick=()=>{if(c===sh.xAxis){sh.series=sh.series||[];sh.series=sh.series.filter(x=>x!==c)}else if((sh.series||[]).includes(c))sh.xAxis=c;else sh.series=[...(sh.series||[]),c];syncControlValues();updateChart();renderAll()};wrap.append(chip)}}
+  function cleanTransform(kind){const sh=st();pushHistory();if(kind==="trim")sh.data=sh.data.map(r=>r.map(v=>typeof v==="string"?v.trim():v));if(kind==="dedupe"){const seen=new Set(),out=[sh.data[0]];sh.data.slice(1).forEach(r=>{const k=JSON.stringify(r);if(!seen.has(k)){seen.add(k);out.push(r)}});sh.data=out}if(kind==="blankRows")sh.data=sh.data.filter((r,i)=>i===0||r.some(v=>String(v??"").trim()!==""));if(kind==="blankCols"){const keep=[];for(let c=0;c<sh.cols;c++)if(sh.data.some(r=>String(r?.[c]??"").trim()!==""))keep.push(c);sh.data=sh.data.map(r=>keep.map(c=>r[c]??""));sh.cols=keep.length}if(kind==="fillBlank"){for(let c=0;c<sh.cols;c++){let last="";for(let r=1;r<sh.rows;r++){if(String(sh.data[r][c]??"").trim()==="")sh.data[r][c]=last;else last=sh.data[r][c]}}}if(kind==="lower")sh.data=sh.data.map(r=>r.map(v=>typeof v==="string"&&!v.startsWith("=")?v.toLowerCase():v));if(kind==="upper")sh.data=sh.data.map(r=>r.map(v=>typeof v==="string"&&!v.startsWith("=")?v.toUpperCase():v));sh.rows=sh.data.length;sh.cols=Math.max(1,...sh.data.map(r=>r.length));renderAll();toast("Data cleaned.")}
+  function renderFilters(){const wrap=$("#filterRows"),sh=st();if(!sh.filters?.length){wrap.innerHTML=`<div class="calc-preview">No filters active. Add one to hide rows without deleting them.</div>`;return}wrap.innerHTML=sh.filters.map((f,i)=>`<div class="filter-row" data-fi="${i}"><select class="v3-select fc"><option value="${f.c}">Column ${colName(f.c)} · ${escapeAttr(sh.data[0]?.[f.c]??"")}</option></select><select class="v3-select fo"><option value="contains">contains</option><option value="=">equals</option><option value=">">&gt;</option><option value="<">&lt;</option><option value=">=">≥</option><option value="<=">≤</option></select><input class="v3-input fv" value="${escapeAttr(f.value)}" placeholder="Value"><button class="mini fr">×</button></div>`).join("");wrap.querySelectorAll("[data-fi]").forEach(el=>{const i=Number(el.dataset.fi);el.querySelector(".fc").value=sh.filters[i].c;el.querySelector(".fo").value=sh.filters[i].op;el.querySelector(".fv").value=sh.filters[i].value;el.querySelector(".fc").onchange=e=>{sh.filters[i].c=Number(e.target.value);renderAll()};el.querySelector(".fo").onchange=e=>{sh.filters[i].op=e.target.value;renderAll()};el.querySelector(".fv").oninput=e=>{sh.filters[i].value=e.target.value;debouncedFilter()};el.querySelector(".fr").onclick=()=>{pushHistory();sh.filters.splice(i,1);renderAll()}})}
+  let filterTimer;function debouncedFilter(){clearTimeout(filterTimer);filterTimer=setTimeout(()=>renderGrid(),160)}
+  function addFilter(){const sh=st();pushHistory();sh.filters=sh.filters||[];sh.filters.push({c:0,op:"contains",value:""});renderFilters();renderGrid()}
+  function createCalculatedColumn(){const sh=st(),name=$("#calcName").value.trim()||`Calculated ${sh.cols}`,formula=$("#calcFormula").value.trim()||"=0";pushHistory();sh.data[0][sh.cols]=name;for(let r=1;r<sh.rows;r++){let f=formula.replace(/([A-Z]+)2\b/g,(_,c)=>`${c}${r+1}`);sh.data[r][sh.cols]=f}sh.cols++;sh.series=[...new Set([...(sh.series||[]),sh.cols-1])];renderAll();toast(`Created ${name}.`)}
+  function updateCalcPreview(){const f=$("#calcFormula").value.trim();if(!f){$("#calcPreview").textContent="Preview will appear here.";return}const sh=st();try{const sample=f.replace(/([A-Z]+)\d+/g,(_,c)=>`${c}2`);$("#calcPreview").textContent=`Sample formula: ${sample} → ${formatValue(evalExpression(sample.slice(1),[]))}`}catch{$("#calcPreview").textContent="Formula preview could not be evaluated yet."}}
+  function inspectorRefs(formula){const refs=[];for(const m of formula.matchAll(/([A-Z]{1,3}\d+)/gi))refs.push(m[1].toUpperCase());return [...new Set(refs)]}
+  function updateInspector(){const sh=st(),raw=getCellRaw(selected.r,selected.c),box=$("#inspector");if(!raw.startsWith("=")){box.innerHTML=`<div class="calc-preview"><strong>${addr(selected.r,selected.c)}</strong> is not a formula.</div>`;return}const refs=inspectorRefs(raw),nodes=refs.map(ref=>{const p=parseCellRef(ref);let val="";try{val=formatValue(evalCell(p.r,p.c,[]))}catch(e){val=e.message}return`<div class="inspector-node">${escapeHtml(ref)} → ${escapeHtml(val)}</div>`}).join("");let result="";try{result=formatValue(evalCell(selected.r,selected.c,[]))}catch(e){result=e.message}box.innerHTML=`<div class="calc-preview"><strong>${addr(selected.r,selected.c)}</strong><span style="display:block;margin-top:3px">${escapeHtml(raw)}</span><span style="display:block;margin-top:3px">Result: ${escapeHtml(result)}</span></div><div style="height:7px"></div>${nodes||`<div class="formula-error-row">No direct A1 references found.</div>`}`}
+  function updateWhatIfCells(){const sh=st(),sel=$("#whatIfCell");sel.innerHTML="";for(let r=0;r<Math.min(sh.rows,60);r++)for(let c=0;c<Math.min(sh.cols,12);c++){const raw=getCellRaw(r,c);if(r===0||numeric(raw)!==null){const o=document.createElement("option");o.value=`${r}:${c}`;o.textContent=`${addr(r,c)} · ${String(raw).slice(0,30)}`;sel.appendChild(o)}}sel.value=`${selected.r}:${selected.c}`}
+  function whatIf(){const sh=st(),key=$("#whatIfCell").value.split(":").map(Number),v=$("#whatIfValue").value,old=clone(sh.data);if(!key.length)return;const before={};sh.data.flat().forEach((_,i)=>{});for(let r=0;r<sh.rows;r++)for(let c=0;c<sh.cols;c++)if(String(sh.data[r][c]).startsWith("=")){try{before[`${r}:${c}`]=evalCell(r,c,[])}catch{}}sh.data[key[0]][key[1]]=v;const after={};for(let r=0;r<sh.rows;r++)for(let c=0;c<sh.cols;c++)if(String(sh.data[r][c]).startsWith("=")){try{after[`${r}:${c}`]=evalCell(r,c,[])}catch{}}sh.data=old;const diffs=Object.keys(before).map(k=>({k,b:before[k],a:after[k],d:(after[k]??0)-(before[k]??0)})).filter(x=>Number.isFinite(x.d)&&x.d!==0).slice(0,8);$("#whatIfResult").innerHTML=diffs.length?diffs.map(x=>`${escapeHtml(x.k)}: ${formatValue(x.b)} → ${formatValue(x.a)} (${x.d>0?"+":""}${formatValue(x.d)})`).join("<br>"):"No formula outputs changed."}
+  function isDateLike(v){if(!v)return false;const d=new Date(v);return !Number.isNaN(d.getTime())&&/[\-\/]|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/i.test(String(v))}
+  function updateDateCols(){const sh=st(),sel=$("#dateColumn");sel.innerHTML="";for(let c=0;c<sh.cols;c++){const o=document.createElement("option");o.value=c;o.textContent=`${colName(c)} · ${sh.data[0]?.[c]??""}`;sel.appendChild(o)}}
+  function detectDates(){const sh=st(),c=Number($("#dateColumn").value);const vals=sh.data.slice(1).map(r=>r[c]).filter(Boolean);const score=vals.length?vals.filter(isDateLike).length/vals.length:0;$("#dateStatus").textContent=`Date likelihood: ${(score*100).toFixed(0)}%`}
+  function expandDate(){const sh=st(),c=Number($("#dateColumn").value),good=sh.data.slice(1).filter(r=>isDateLike(r[c])).length; if(!good){toast("No date-like values found.");return}pushHistory();const base=sh.cols;["Year","Month","Quarter","Weekday"].forEach((name,i)=>sh.data[0][base+i]=name);sh.data.slice(1).forEach(r=>{const d=new Date(r[c]);r[base]=d.getFullYear();r[base+1]=d.getMonth()+1;r[base+2]=`Q${Math.floor(d.getMonth()/3)+1}`;r[base+3]=d.toLocaleDateString(undefined,{weekday:"short"})});sh.cols+=4;$("#dateStatus").textContent="Added Year / Month / Quarter / Weekday columns.";renderAll()}
+  function downloadBlob(blob,name){const a=document.createElement("a"),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),800)}
+  function exportCsv(){const sh=st();const ws=XLSX.utils.aoa_to_sheet(sh.data.map(r=>r.slice(0,sh.cols)));downloadBlob(new Blob(["\ufeff"+XLSX.utils.sheet_to_csv(ws)],{type:"text/csv;charset=utf-8"}),`${activeSheet}.csv`);toast("CSV exported.")}
+  function exportXlsx(){const wb=XLSX.utils.book_new();Object.entries(sheets).forEach(([name,sh])=>{const ws=XLSX.utils.aoa_to_sheet(sh.data.map(r=>r.slice(0,sh.cols)));for(let r=0;r<sh.data.length;r++)for(let c=0;c<sh.cols;c++){const raw=String(sh.data[r]?.[c]??"");if(raw.startsWith("=")){const ref=XLSX.utils.encode_cell({r,c});let val=0;try{const old=activeSheet;activeSheet=name;val=evalCell(r,c,[]);activeSheet=old}catch{}ws[ref]={f:raw.slice(1),v:Number.isFinite(val)?val:0,t:"n"}}}ws["!ref"]=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:sh.data.length-1,c:sh.cols-1}});XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31)||"Sheet")});XLSX.writeFile(wb,"chartforge-v3.xlsx");toast("XLSX exported with all sheets.")}
+  function exportSvg(scale=1){if(!chart)return;const svg=chart.getDom().querySelector("svg");if(!svg){toast("SVG renderer not ready.");return}const x=svg.cloneNode(true);x.setAttribute("xmlns","http://www.w3.org/2000/svg");const source='<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(x);downloadBlob(new Blob([source],{type:"image/svg+xml;charset=utf-8"}),"chartforge-chart.svg");toast("SVG exported.")}
+  function exportPng(px=2){if(!chart)return;try{const url=chart.getDataURL({type:"png",pixelRatio:px,backgroundColor:st().transparentBg?undefined:(st().bg||"#f7fbf8")});const a=document.createElement("a");a.href=url;a.download=`chartforge-${px}x.png`;a.click();toast(`PNG ${px}× exported.`)}catch{toast("PNG export failed.")}}
+  function projectObject(){return{version:3,app:"ChartForge",owner:"yourr-ikyy",createdAt:new Date().toISOString(),activeSheet,sheets,settings:{dark,activePalette,dashboardMode,customTheme,dashboardWidgets:[...document.querySelectorAll("#dashboardGrid .dash-widget")].map(w=>({type:w.dataset.widgetType||"chart",c:Number(w.dataset.kpiC??-1),w:w.offsetWidth,h:w.offsetHeight}))}}}
+  function saveProject(){downloadBlob(new Blob([JSON.stringify(projectObject(),null,2)],{type:"application/json"}),"chartforge-project.chartforge");toast("Project saved.")}
+  function loadProjectFile(file){const rd=new FileReader();rd.onload=()=>{try{const obj=JSON.parse(rd.result);if(!obj.sheets)throw 0;sheets=obj.sheets;activeSheet=obj.activeSheet||Object.keys(sheets)[0];dark=!!obj.settings?.dark;activePalette=obj.settings?.activePalette||"aurora";customTheme=obj.settings?.customTheme||null;if(customTheme){document.documentElement.style.setProperty("--accent",customTheme.a);document.documentElement.style.setProperty("--green",customTheme.a);document.documentElement.style.setProperty("--green2",customTheme.b);document.documentElement.style.setProperty("--accent2",customTheme.b);palettes.custom=customTheme.colors||[customTheme.a,customTheme.b,"#b9ef75","#163d2b","#4cc58a","#8ed8ad","#d7f4e1","#6db88c"]}applyDark();renderAll();toast("Project restored.")}catch{toast("Invalid .chartforge project.")}};rd.readAsText(file)}
+  function importJsonText(txt,name="JSON Import"){let obj=JSON.parse(txt);if(!Array.isArray(obj)){if(obj.data&&Array.isArray(obj.data))obj=obj.data;else if(obj.rows&&Array.isArray(obj.rows))obj=obj.rows;else{const arr=Object.entries(obj).map(([k,v])=>({key:k,value:v}));obj=arr}}const rows=obj.length&&Array.isArray(obj[0])?obj:[Object.keys(obj[0]||{}) ,...obj.map(x=>Object.values(x))];const matrix=rows.map(r=>r.map(v=>v==null?"":String(v)));const base=name.replace(/[^a-z0-9 _-]/gi,"").slice(0,22)||"JSON Import";let n=base,i=2;while(sheets[n])n=`${base} ${i++}`;sheets[n]={data:normalize(matrix),rows:matrix.length,cols:Math.max(1,...matrix.map(r=>r.length)),series:[],xAxis:0,title:name,subtitle:"",legend:"bottom",fontSize:12,smooth:false,stack:false,grid:true,labels:false,zoom:false,bg:"#f7fbf8",axisName:"",xAxisName:"",chartType:"bar",lineWidth:2,pointSize:8,opacity:1,yScale:"value",yMin:"",yMax:"",xRotate:0,transparentBg:false,filters:[]};activeSheet=n;selected={r:0,c:0};sheets[n].series=getNumericCols();renderAll();toast(`Imported ${n}.`)}
+  function normalize(matrix){const m=matrix.map(r=>Array.isArray(r)?r.map(v=>v==null?"":String(v)):[]);const cc=Math.max(1,...m.map(r=>r.length));m.forEach(r=>{while(r.length<cc)r.push("")});return m}
+  function importFile(file){const rd=new FileReader();rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:"array"});Object.keys(wb.Sheets).forEach((name,idx)=>{const ws=wb.Sheets[name],range=XLSX.utils.decode_range(ws["!ref"]||"A1:A1"),m=[];for(let r=range.s.r;r<=range.e.r;r++){const row=[];for(let c=range.s.c;c<=range.e.c;c++){const cell=ws[XLSX.utils.encode_cell({r,c})];row.push(cell?.f?"="+cell.f:cell?.v==null?"":String(cell.w??cell.v))}m.push(row)}let n=name||`Imported ${idx+1}`;let k=2;while(sheets[n])n=`${name} ${k++}`;sheets[n]={data:normalize(m),rows:m.length,cols:Math.max(1,...m.map(r=>r.length)),series:[],xAxis:0,title:n,subtitle:"",legend:"bottom",fontSize:12,smooth:false,stack:false,grid:true,labels:false,zoom:false,bg:"#f7fbf8",axisName:"",xAxisName:"",chartType:"bar",lineWidth:2,pointSize:8,opacity:1,yScale:"value",yMin:"",yMax:"",xRotate:0,transparentBg:false,filters:[]};});activeSheet=Object.keys(sheets).at(-1);selected={r:0,c:0};renderAll();toast(`Imported ${file.name} as sheet(s).`)}catch{toast("Could not read that file.")}};rd.readAsArrayBuffer(file)}
+  function updateControlsFromState(){const sh=st();["chartType","xAxis","titleInput","subtitleInput","legendPos","fontSize","bgInput","axisNameInput","xAxisNameInput"].forEach(id=>{const el=$("#"+id);if(!el)return});$("#chartType").value=sh.chartType||"bar";$("#xAxis").value=String(sh.xAxis||0);$("#titleInput").value=sh.title||"";$("#subtitleInput").value=sh.subtitle||"";$("#legendPos").value=sh.legend||"bottom";$("#fontSize").value=sh.fontSize||12;$("#smoothChk").checked=!!sh.smooth;$("#stackChk").checked=!!sh.stack;$("#gridChk").checked=sh.grid!==false;$("#labelChk").checked=!!sh.labels;$("#zoomChk").checked=!!sh.zoom;$("#bgInput").value=sh.bg||"#f7fbf8";$("#axisNameInput").value=sh.axisName||"";$("#xAxisNameInput").value=sh.xAxisName||"";$("#lineWidth").value=sh.lineWidth??2;$("#pointSize").value=sh.pointSize??8;$("#opacity").value=sh.opacity??1;$("#yScale").value=sh.yScale||"value";$("#yMin").value=sh.yMin??"";$("#yMax").value=sh.yMax??"";$("#xRotate").value=sh.xRotate??0;$("#transparentBgChk").checked=!!sh.transparentBg}
+  function syncControlValues(){updateControlsFromState();buildXAxis();buildSeriesChecks()}
+  function saveLocal(show=true){try{localStorage.setItem("chartforge_v3",JSON.stringify(projectObject()));if(show)toast("Saved to this browser.")}catch{toast("Local save unavailable.")}}
+  function loadLocal(){try{const x=JSON.parse(localStorage.getItem("chartforge_v3"));if(!x?.sheets)return false;sheets=x.sheets;activeSheet=x.activeSheet||Object.keys(sheets)[0];dark=!!x.settings?.dark;activePalette=x.settings?.activePalette||"aurora";dashboardMode=!!x.settings?.dashboardMode;customTheme=x.settings?.customTheme||null;if(customTheme){document.documentElement.style.setProperty("--accent",customTheme.a);document.documentElement.style.setProperty("--green",customTheme.a);document.documentElement.style.setProperty("--green2",customTheme.b);document.documentElement.style.setProperty("--accent2",customTheme.b);palettes.custom=customTheme.colors||[customTheme.a,customTheme.b,"#b9ef75","#163d2b","#4cc58a","#8ed8ad","#d7f4e1","#6db88c"]}return true}catch{return false}}
+  function scheduleAutosave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveLocal(false),500)}
+  function escapeHtml(s){return String(s).replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;",'\\':"&#92;"}[m]))}
+  function escapeAttr(s){return escapeHtml(s).replace(/'/g,"&#39;")}
+  function applyDark(){document.body.classList.toggle("dark",dark);$("#darkBtn").textContent=dark?"Light mode":"Dark mode";if(chart){chart.dispose();chart=null}}
+  function toast(msg){toastEl.textContent=msg;toastEl.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>toastEl.classList.remove("show"),1900)}
+  function renderSheetTabs(){let mount=$("#sheetTabsMount");mount.innerHTML=`<div class="shell"><div class="sheet-tabs" id="sheetTabs"></div></div>`;const tabs=$("#sheetTabs");Object.keys(sheets).forEach(name=>{const b=document.createElement("button");b.className="sheet-tab "+(name===activeSheet?"active":"");b.textContent=name;b.onclick=()=>{activeSheet=name;selected={r:0,c:0};renderAll()};tabs.appendChild(b)})}
+  function updateStatus(){const sh=st(), vis=Math.max(0,filteredRows().length);statusEl.querySelector("span:last-child").textContent=`${vis}/${Math.max(0,sh.rows-1)} visible rows · ${getNumericCols().length} numeric series`}
+  function dashboardAddKpi(){const sh=st(),nums=getNumericCols(),c=nums[0]??1,vals=sh.data.slice(1).map(r=>numeric(r[c])).filter(v=>v!==null),avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;const w=document.createElement("div");w.className="dash-widget";w.dataset.widgetType="kpi";w.dataset.kpiC=String(c);w.style.gridColumn="span 3";w.innerHTML=`<div class="dw-head"><span>KPI · ${escapeHtml(String(sh.data[0]?.[c]??colName(c)))}</span><span class="dw-handle">↕</span></div><div class="dw-body dash-kpi"><div class="big">${formatValue(avg)}</div><div class="small">Average</div></div>`;makeDashDraggable(w);$("#dashboardGrid").appendChild(w)}
+  function dashboardAddChart(){const w=document.createElement("div");w.className="dash-widget resizable-panel";w.dataset.widgetType="chart";w.style.gridColumn="span 6";const id=`dw-${Date.now()}-${Math.random().toString(16).slice(2)}`;w.innerHTML=`<div class="dw-head"><span>Chart widget</span><span class="dw-handle">↕</span></div><div class="dw-body"><div class="dw-chart" id="${id}"></div></div>`;$("#dashboardGrid").appendChild(w);if(typeof echarts!=="undefined"){const ch=echarts.init(w.querySelector(".dw-chart"),null,{renderer:"svg"});ch.setOption(makeOption(),true);dashCharts.push(ch)}makeDashDraggable(w)}
+  function makeDashDraggable(el){const h=el.querySelector(".dw-handle");let dragging=false;h?.addEventListener("pointerdown",e=>{dragging=true;el.classList.add("drag-ghost");document.body.style.userSelect="none";h.setPointerCapture(e.pointerId)});h?.addEventListener("pointermove",e=>{if(!dragging)return;document.querySelectorAll(".drop-target").forEach(x=>x.classList.remove("drop-target"));const target=document.elementFromPoint(e.clientX,e.clientY)?.closest(".dash-widget");if(target&&target!==el)target.classList.add("drop-target")});h?.addEventListener("pointerup",e=>{dragging=false;el.classList.remove("drag-ghost");document.body.style.userSelect="";document.querySelectorAll(".drop-target").forEach(x=>x.classList.remove("drop-target"));const target=document.elementFromPoint(e.clientX,e.clientY)?.closest(".dash-widget");if(target&&target!==el){target.parentNode.insertBefore(el,target);toast("Dashboard order updated.")}})}
+  function updateDashboardWidgets(){document.querySelectorAll("#dashboardGrid .dash-widget[data-widget-type=\"kpi\"]").forEach(w=>{const c=Number(w.dataset.kpiC);const vals=st().data.slice(1).map(r=>numeric(r[c])).filter(v=>v!==null);const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;const big=w.querySelector(".big"),head=w.querySelector(".dw-head span");if(big)big.textContent=formatValue(avg);if(head)head.textContent=`KPI · ${String(st().data[0]?.[c]??colName(c))}`});dashCharts=typeof echarts!=="undefined"?dashCharts:[];dashCharts.forEach(ch=>{try{ch.setOption(makeOption(),true)}catch{}})}
+  function renderDashboard(){const card=$("#dashboardCard"),dg=$("#dashboardGrid");if(!dashboardMode){card.style.display="none";return}card.style.display="block";if(!dg.children.length){dashCharts=[];dashboardAddKpi();dashboardAddKpi();dashboardAddChart();dashboardAddChart()}updateDashboardWidgets()}
+  function toggleDashboard(){dashboardMode=!dashboardMode;renderDashboard();scheduleAutosave()}
+  function renderAll(full=true){if(full){syncControlValues();renderSheetTabs()}renderGrid();updateFormulaBar();renderFilters();updateMetrics();renderPalette();updateInsights();updateTypesAndAnomalies();recommendChart();updateBuilderFields();updateWhatIfCells();updateDateCols();updateCalcPreview();updateInspector();renderDashboard();updateUndoRedo();updateStatus();updateChart()}
+
+  // Existing controls
+  $("#newBtn").onclick=()=>{pushHistory();const name=`Sheet${Object.keys(sheets).length+1}`;sheets[name]={data:[["Category","Value A","Value B"],["A",10,25],["B",18,32],["C",14,22],["D",27,40],["E",21,35]],rows:6,cols:3,series:[1,2],xAxis:0,title:"Your Data Visualization",subtitle:"",legend:"bottom",fontSize:12,smooth:false,stack:false,grid:true,labels:false,zoom:false,bg:"#f7fbf8",axisName:"",xAxisName:"",chartType:"bar",lineWidth:2,pointSize:8,opacity:1,yScale:"value",yMin:"",yMax:"",xRotate:0,transparentBg:false,filters:[]};activeSheet=name;selected={r:0,c:0};renderAll();toast("New sheet created.")};
+  $("#sampleBtn").onclick=()=>{pushHistory();const name=`Sample ${Object.keys(sheets).length+1}`;const sample=[["Month","Revenue","Expenses","Users","Profit"],["Jan",5200,3000,820,"=B2-C2"],["Feb",6100,3180,910,"=B3-C3"],["Mar",6900,3400,1040,"=B4-C4"],["Apr",7500,3520,1180,"=B5-C5"],["May",8300,3770,1290,"=B6-C6"],["Jun",9100,4010,1410,"=B7-C7"],["Jul",9800,4220,1530,"=B8-C8"],["Aug",10700,4450,1680,"=B9-C9"],["Sep",11600,4730,1820,"=B10-C10"],["Oct",12400,5010,1980,"=B11-C11"],["Nov",13800,5480,2140,"=B12-C12"],["Dec",15100,5900,2310,"=B13-C13"]];sheets[name]={data:sample,rows:sample.length,cols:5,series:[1,2,4],xAxis:0,title:"Revenue vs Expenses",subtitle:"Sample dataset",legend:"bottom",fontSize:12,smooth:true,stack:false,grid:true,labels:false,zoom:true,bg:"#f7fbf8",axisName:"Value",xAxisName:"Month",chartType:"line",lineWidth:2,pointSize:8,opacity:1,yScale:"value",yMin:"",yMax:"",xRotate:0,transparentBg:false,filters:[]};activeSheet=name;selected={r:0,c:0};renderAll();toast("Sample sheet loaded.")};
+  $("#importBtn").onclick=()=>$("#fileInput").click();$("#fileInput").onchange=e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value=""};$("#addRowBtn").onclick=addRow;$("#addColBtn").onclick=addCol;$("#deleteRowBtn").onclick=deleteRow;$("#deleteColBtn").onclick=deleteCol;$("#duplicateBtn").onclick=()=>{pushHistory();const sh=st();const body=clone(sh.data.slice(1));sh.data=sh.data.concat(body);sh.rows=sh.data.length;renderAll();toast("Data duplicated below original.")};$("#clearBtn").onclick=clearData;$("#sortAscBtn").onclick=()=>sortSelected("asc");$("#sortDescBtn").onclick=()=>sortSelected("desc");$("#fillDownBtn").onclick=fillDown;$("#saveBtn").onclick=()=>saveLocal(true);
+  $("#undoBtn").onclick=()=>{if(!history.length)return;future.push(snapshot());restore(history.pop());toast("Undo.")};$("#redoBtn").onclick=()=>{if(!future.length)return;history.push(snapshot());restore(future.pop());toast("Redo.")};
+  $$(".formula-chip").forEach(btn=>btn.onclick=()=>{formulaBar.value=btn.dataset.formula;formulaBar.focus();formulaBar.select()});formulaBar.onkeydown=e=>{if(e.key==="Enter"){commitCell(selected.r,selected.c,formulaBar.value,true);e.preventDefault()}if(e.key==="Escape")updateFormulaBar()};nameBox.onchange=()=>{const ref=parseCellRef(nameBox.value.trim());if(ref){const sh=st();while(sh.data.length<=ref.r)sh.data.push(Array(sh.cols).fill(""));while(sh.cols<=ref.c){sh.cols++;sh.data.forEach(r=>r.push(""))}sh.rows=sh.data.length;selected=ref;renderAll();gridEl.querySelector(`.cell[data-r="${ref.r}"][data-c="${ref.c}"]`)?.focus()}else nameBox.value=addr(selected.r,selected.c)};
+  const bind=(id,fn)=>{const el=$("#"+id);if(el){el.addEventListener("input",fn);el.addEventListener("change",fn)}};
+  bind("chartType",()=>{st().chartType=$("#chartType").value;updateChart();scheduleAutosave()});bind("xAxis",()=>{st().xAxis=Number($("#xAxis").value);buildSeriesChecks();updateChart();scheduleAutosave()});bind("titleInput",()=>{st().title=$("#titleInput").value;updateChart()});bind("subtitleInput",()=>{st().subtitle=$("#subtitleInput").value;updateChart()});bind("legendPos",()=>{st().legend=$("#legendPos").value;updateChart()});bind("fontSize",()=>{st().fontSize=Number($("#fontSize").value)||12;updateChart()});bind("bgInput",()=>{st().bg=$("#bgInput").value||"#f7fbf8";updateChart()});bind("axisNameInput",()=>{st().axisName=$("#axisNameInput").value;updateChart()});bind("xAxisNameInput",()=>{st().xAxisName=$("#xAxisNameInput").value;updateChart()});["smoothChk","stackChk","gridChk","labelChk","zoomChk"].forEach(id=>$("#"+id).onchange=()=>{st().smooth=$("#smoothChk").checked;st().stack=$("#stackChk").checked;st().grid=$("#gridChk").checked;st().labels=$("#labelChk").checked;st().zoom=$("#zoomChk").checked;updateChart();scheduleAutosave()});
+  ["lineWidth","pointSize","opacity","yScale","yMin","yMax","xRotate"].forEach(id=>bind(id,()=>{st()[id]=$("#"+id).value;updateChart();scheduleAutosave()}));$("#transparentBgChk").onchange=()=>{st().transparentBg=$("#transparentBgChk").checked;scheduleAutosave()};
+  $("#searchInput").oninput=e=>{searchData(e.target.value)};$("#resetViewBtn").onclick=()=>{chart?.dispatchAction({type:"restore"});toast("View reset.")};$("#exportCsvBtn").onclick=exportCsv;$("#exportXlsxBtn").onclick=exportXlsx;$("#exportSvgBtn").onclick=()=>exportSvg(1);$("#exportPngBtn").onclick=()=>exportPng(2);$("#helpBtn").onclick=()=>$("#helpModal").classList.remove("hidden");$("#closeHelp").onclick=()=>$("#helpModal").classList.add("hidden");$("#helpModal").onclick=e=>{if(e.target.id==="helpModal")e.target.classList.add("hidden")};
+  gridEl.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(!text||!text.includes("\t"))return;e.preventDefault();const matrix=text.replace(/\r/g,"").split("\n").filter((r,i,a)=>r!==""||i<a.length-1).map(r=>r.split("\t"));pushHistory();const sh=st();matrix.forEach((row,ri)=>{const rr=selected.r+ri;while(sh.data.length<=rr)sh.data.push(Array(sh.cols).fill(""));row.forEach((v,ci)=>{const cc=selected.c+ci;if(cc>=sh.cols){sh.cols++;sh.data.forEach(r=>r.push(""))}sh.data[rr][cc]=v})});sh.rows=sh.data.length;renderAll();toast("Pasted range.")});
+  // V3 events
+  $("#refreshInsightsBtn").onclick=()=>{updateInsights();updateTypesAndAnomalies();toast("Insights refreshed.")};$("#trimBtn").onclick=()=>cleanTransform("trim");$("#dedupeBtn").onclick=()=>cleanTransform("dedupe");$("#blankRowsBtn").onclick=()=>cleanTransform("blankRows");$("#blankColsBtn").onclick=()=>cleanTransform("blankCols");$("#fillBlankBtn").onclick=()=>cleanTransform("fillBlank");$("#lowerBtn").onclick=()=>cleanTransform("lower");$("#upperBtn").onclick=()=>cleanTransform("upper");$("#replaceBtn").onclick=()=>$("#filterModal").classList.remove("hidden");$("#doReplaceBtn").onclick=()=>{const from=$("#replaceFrom").value,to=$("#replaceTo").value;if(!from)return;pushHistory();const sh=st();sh.data=sh.data.map(r=>r.map(v=>String(v).includes(from)?String(v).split(from).join(to):v));$("#filterModal").classList.add("hidden");renderAll();toast("Replacement complete.")};
+  $("#newSheetBtn").onclick=()=>{const name=($("#newSheetName").value.trim()||`Sheet${Object.keys(sheets).length+1}`);let n=name,i=2;while(sheets[n])n=`${name} ${i++}`;pushHistory();sheets[n]={data:clone(st().data),rows:st().rows,cols:st().cols,series:clone(st().series||[]),xAxis:st().xAxis||0,title:st().title,subtitle:st().subtitle,legend:st().legend,fontSize:st().fontSize,smooth:st().smooth,stack:st().stack,grid:st().grid,labels:st().labels,zoom:st().zoom,bg:st().bg,axisName:st().axisName,xAxisName:st().xAxisName,chartType:st().chartType,lineWidth:st().lineWidth??2,pointSize:st().pointSize??8,opacity:st().opacity??1,yScale:st().yScale||"value",yMin:st().yMin??"",yMax:st().yMax??"",xRotate:st().xRotate??0,transparentBg:!!st().transparentBg,filters:[]};activeSheet=n;selected={r:0,c:0};renderAll();toast(`Sheet ${n} created.`)};
+  $("#deleteSheetBtn").onclick=()=>{if(Object.keys(sheets).length===1){toast("Keep at least one sheet.");return}pushHistory();delete sheets[activeSheet];activeSheet=Object.keys(sheets)[0];selected={r:0,c:0};renderAll();toast("Sheet deleted.")};$("#renameSheetBtn").onclick=()=>{const next=prompt("Rename sheet",activeSheet);if(!next||sheets[next])return;pushHistory();sheets[next]=sheets[activeSheet];delete sheets[activeSheet];activeSheet=next;renderAll()};
+  $("#recommendBtn").onclick=()=>{recommendChart();toast("Recommendation updated.")};$("#autoChartBtn").onclick=autoVisualize;$("#addFilterBtn").onclick=addFilter;$("#clearFiltersBtn").onclick=()=>{pushHistory();st().filters=[];renderAll()};$("#createCalcBtn").onclick=createCalculatedColumn;$("#calcFormula").oninput=updateCalcPreview;$("#inspectBtn").onclick=()=>{updateInspector();toast(`Inspected ${addr(selected.r,selected.c)}.`)};
+  $("#darkBtn").onclick=()=>{dark=!dark;applyDark();renderAll();scheduleAutosave()};$("#dashboardBtn").onclick=toggleDashboard;$("#closeDashboardBtn").onclick=toggleDashboard;$("#addKpiWidgetBtn").onclick=dashboardAddKpi;$("#addChartWidgetBtn").onclick=dashboardAddChart;
+  $("#saveProjectBtn").onclick=saveProject;$("#loadProjectBtn").onclick=()=>$("#projectInput").click();$("#projectInput").onchange=e=>{if(e.target.files[0])loadProjectFile(e.target.files[0]);e.target.value=""};$("#exportJsonBtn").onclick=()=>downloadBlob(new Blob([JSON.stringify(st().data,null,2)],{type:"application/json"}),`${activeSheet}.json`);$("#importJsonBtn").onclick=()=>{try{importJsonText($("#jsonBox").value||"[]","JSON Import")}catch{toast("Invalid JSON.")}};$("#apiImportBtn").onclick=async()=>{const url=$("#apiUrl").value.trim();if(!url)return toast("Paste a URL first.");const s=$("#apiStatus");s.textContent="Fetching…";try{const res=await fetch(url);if(!res.ok)throw new Error(`${res.status}`);const type=res.headers.get("content-type")||"";const text=await res.text();if(type.includes("json")||text.trim().startsWith("[")||text.trim().startsWith("{")){importJsonText(text,"API Import")}else{const wb=XLSX.read(text,{type:"string"});const ws=wb.Sheets[wb.SheetNames[0]];importJsonText(JSON.stringify(XLSX.utils.sheet_to_json(ws,{header:1})),"API CSV")};s.textContent="Fetched successfully."}catch(e){s.textContent=`Fetch failed: ${e.message}. CORS may be blocking the source.`;toast("API import failed.")}};
+  $("#applyThemeBtn").onclick=()=>{const a=$("#themeA").value,b=$("#themeB").value;document.documentElement.style.setProperty("--accent",a);document.documentElement.style.setProperty("--green",a);document.documentElement.style.setProperty("--green2",b);document.documentElement.style.setProperty("--accent2",b);palettes.custom=[a,b,"#b9ef75","#163d2b","#4cc58a","#8ed8ad","#d7f4e1","#6db88c"];customTheme={a,b,colors:palettes.custom};activePalette="custom";renderPalette();updateChart();scheduleAutosave();toast("Custom theme applied.")};$("#png2Btn").onclick=()=>exportPng(2);$("#png4Btn").onclick=()=>exportPng(4);$("#svgHiBtn").onclick=()=>exportSvg(1);$("#detectDatesBtn").onclick=detectDates;$("#expandDateBtn").onclick=expandDate;$("#whatIfBtn").onclick=whatIf;
+  $$('[data-close]').forEach(b=>b.onclick=()=>$("#"+b.dataset.close).classList.add("hidden"));
+  const formulaList=document.createElement("datalist");formulaList.id="formulaFunctions";["SUM(","AVERAGE(","MEDIAN(","MODE(","MIN(","MAX(","COUNT(","COUNTA(","ABS(","SQRT(","POWER(","ROUND(","ROUNDUP(","ROUNDDOWN(","IF(","AND(","OR("].forEach(x=>{const o=document.createElement("option");o.value=x;formulaList.appendChild(o)});document.body.appendChild(formulaList);formulaBar.setAttribute("list","formulaFunctions");
+  // Command palette
+  const commands=[
+    ["Create calculated column","Add a formula-driven column",createCalculatedColumn],["Auto visualize","Recommend and apply a chart",autoVisualize],["Refresh insights","Re-run data analysis",()=>{updateInsights();updateTypesAndAnomalies();toast("Insights refreshed.")}],["Clean duplicates","Remove duplicate rows",()=>cleanTransform("dedupe")],["Trim whitespace","Trim all text cells",()=>cleanTransform("trim")],["Save project","Export .chartforge",saveProject],["Export XLSX","Export all sheets to XLSX",exportXlsx],["Export CSV","Export active sheet to CSV",exportCsv],["Export SVG","Export active chart as SVG",()=>exportSvg(1)],["Export PNG 4×","Export a high-res PNG",()=>exportPng(4)],["Toggle dashboard","Show/hide dashboard mode",toggleDashboard],["Toggle dark mode","Switch appearance",()=>{dark=!dark;applyDark();renderAll()}],["New sheet","Duplicate current sheet into a new tab",()=>$("#newSheetBtn").click()],["Add filter","Add a spreadsheet filter",addFilter],["Detect dates","Scan selected date column",detectDates]
+  ];
+  function openPalette(){$("#commandPalette").classList.remove("hidden");$("#commandInput").value="";renderCommands("");setTimeout(()=>$("#commandInput").focus(),0)}
+  function renderCommands(q){const list=$("#commandList"),n=q.toLowerCase();list.innerHTML=commands.filter(c=>`${c[0]} ${c[1]}`.toLowerCase().includes(n)).map((c,i)=>`<div class="command-item" data-cmd="${i}"><strong>${escapeHtml(c[0])}</strong><small>${escapeHtml(c[1])}</small></div>`).join("")||`<div class="command-item"><strong>No command found</strong><small>Try another phrase.</small></div>`;list.querySelectorAll("[data-cmd]").forEach(el=>el.onclick=()=>{commands[Number(el.dataset.cmd)][2]();$("#commandPalette").classList.add("hidden")})}
+  $("#commandInput").oninput=e=>renderCommands(e.target.value);$("#commandPalette").onclick=e=>{if(e.target.id==="commandPalette")e.target.classList.add("hidden")};
+  // Easter eggs: exact strings requested. Secret sequence is intentionally simple.
+  let eggBuffer="";document.addEventListener("keydown",e=>{const key=(e.key||"").toLowerCase();if((e.ctrlKey||e.metaKey)&&key==="k"){e.preventDefault();openPalette();return}if((e.ctrlKey||e.metaKey)&&key==="s"){e.preventDefault();saveLocal(true);return}if((e.ctrlKey||e.metaKey)&&key==="z"){e.preventDefault();$("#undoBtn").click();return}if((e.ctrlKey||e.metaKey)&&key==="o"){e.preventDefault();$("#importBtn").click();return}if((e.ctrlKey||e.metaKey)&&key==="e"){e.preventDefault();exportPng(2);return}if((e.ctrlKey||e.metaKey)&&key==="y"){e.preventDefault();$("#redoBtn").click();return}if(e.key==="?"&&(e.ctrlKey||e.metaKey)){$("#helpBtn").click();return}if(e.key==="Escape"){$("#commandPalette").classList.add("hidden");}if(key.length===1){eggBuffer=(eggBuffer+key).slice(-24);if(eggBuffer.includes("secreteligent")||eggBuffer.includes("yourr-ikyy?")){eggBuffer="";$("#eggModal").classList.remove("hidden")}}});$("#closeEgg").onclick=()=>$("#eggModal").classList.add("hidden");
+  // Keyboard navigation and clipboard affordances
+  document.addEventListener("copy",()=>{const el=document.activeElement;if(el?.classList?.contains("cell"))toast(`Copied ${el.dataset.r?addr(Number(el.dataset.r),Number(el.dataset.c)):"cell"}.`)});
+  // Persist on visibility changes
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)saveLocal(false)});
+  // Initial load
+  if(!loadLocal()){};applyDark();renderAll();updateUndoRedo();
+})();
+</script>
+</body>
+</html>
